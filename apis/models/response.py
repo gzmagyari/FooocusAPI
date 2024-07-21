@@ -23,6 +23,7 @@ class RecordResponse(BaseModel):
     preview: str = Field(default="", title="Preview", description="The preview of the task associated with the record.")
     webhook_url: str = Field(default="", title="Webhook URL", description="The webhook URL associated with the record.")
     result: List = Field(default=[], title="Result", description="The result of the task associated with the record.")
+    base64_result: List = Field(default=[], title="Base64 Result", description="The base64 result of the task associated with the record.")
 
 
 class AllModelNamesResponse(BaseModel):

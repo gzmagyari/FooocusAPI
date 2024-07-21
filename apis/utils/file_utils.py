@@ -219,3 +219,16 @@ def url_path(result: list) -> list:
     for res in result:
         url_or_path.append(to_http(res, "outputs"))
     return url_or_path
+
+def base64_url_path(result: list) -> list:
+    """
+    Converts the result to a list of base64 data urls (the result is a list of file paths).
+    :param result: The result to convert.
+    :return: The list of base64 data urls.
+    """
+    url_or_path = []
+    if len(result) == 0:
+        return url_or_path
+    for res in result:
+        url_or_path.append(output_file_to_base64img(res))
+    return url_or_path

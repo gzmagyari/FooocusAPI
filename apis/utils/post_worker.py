@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from apis.models.base import CurrentTask
-from apis.utils.file_utils import url_path
+from apis.utils.file_utils import url_path, base64_url_path
 from apis.utils import file_utils
 from apis.utils.sql_client import GenerateRecord
 from apis.utils.web_hook import send_result_to_web_hook
@@ -46,6 +46,7 @@ async def post_worker(task: AsyncTask, started_at: int):
         query.task_status = task_status
         query.progress = 100
         query.result = url_path(task.results)
+        query.base64_result = base64_url_path(task.results)
         finally_result = str(query)
         session.commit()
         await send_result_to_web_hook(query.webhook_url, finally_result)
