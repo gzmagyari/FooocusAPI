@@ -127,8 +127,7 @@ def worker():
         for y in range(rows):
             for x in range(cols):
                 if y * cols + x < len(results):
-                    img = results[y * cols + x]
-                    wall[y * H:y * H + H, x * W:x * W + W, :] = img
+                    img = results[y * H:y * H + H, x * W:x * W + W, :] = img
 
         # must use deep copy otherwise gradio is super laggy. Do not use list.append() .
         async_task.results = async_task.results + [wall]
@@ -898,127 +897,128 @@ def worker():
                 int(flags.preparation_step_count + (100 - flags.preparation_step_count) * float(done_steps) / float(all_steps)),
                 f'Sampling step {step + 1}/{total_steps}, image {current_task_id + 1}/{image_number} ...', y)])
 
-        for current_task_id, task in enumerate(tasks):
-            current_progress = int(flags.preparation_step_count + (100 - flags.preparation_step_count) * float(current_task_id * steps) / float(all_steps))
-            progressbar(async_task, current_progress, f'Preparing task {current_task_id + 1}/{image_number} ...')
+        # Gather all tasks' data
+        positive_conds = [task['c'] for task in tasks]
+        negative_conds = [task['uc'] for task in tasks]
+        seeds = [task['task_seed'] for task in tasks]
+        latents = [initial_latent] * len(tasks) if initial_latent is not None else [None] * len(tasks)
+
+        try:
             execution_start_time = time.perf_counter()
-
-            try:
-                if async_task.last_stop is not False:
-                    ldm_patched.modules.model_management.interrupt_current_processing()
-                positive_cond, negative_cond = task['c'], task['uc']
-
-                if 'cn' in goals:
-                    for cn_flag, cn_path in [
-                        (flags.cn_canny, controlnet_canny_path),
-                        (flags.cn_cpds, controlnet_cpds_path)
-                    ]:
-                        for cn_img, cn_stop, cn_weight in cn_tasks[cn_flag]:
-                            positive_cond, negative_cond = core.apply_controlnet(
-                                positive_cond, negative_cond,
-                                pipeline.loaded_ControlNets[cn_path], cn_img, cn_weight, 0, cn_stop)
-
-                imgs = pipeline.process_diffusion(
-                    positive_cond=positive_cond,
-                    negative_cond=negative_cond,
-                    steps=steps,
-                    switch=switch,
-                    width=width,
-                    height=height,
-                    image_seed=task['task_seed'],
-                    callback=callback,
-                    sampler_name=final_sampler_name,
-                    scheduler_name=final_scheduler_name,
-                    latent=initial_latent,
-                    denoise=denoising_strength,
-                    tiled=tiled,
-                    cfg_scale=cfg_scale,
-                    refiner_swap_method=refiner_swap_method,
-                    disable_preview=disable_preview
-                )
-
-                del task['c'], task['uc'], positive_cond, negative_cond  # Save memory
-
-                if inpaint_worker.current_task is not None:
-                    imgs = [inpaint_worker.current_task.post_process(x) for x in imgs]
-
-                img_paths = []
+            for current_task_id, task in enumerate(tasks):
                 current_progress = int(flags.preparation_step_count + (100 - flags.preparation_step_count) * float((current_task_id + 1) * steps) / float(all_steps))
-                if modules.config.default_black_out_nsfw or black_out_nsfw:
-                    progressbar(async_task, current_progress, 'Checking for NSFW content ...')
-                    imgs = default_censor(imgs)
+                progressbar(async_task, current_progress, f'Preparing task {current_task_id + 1}/{image_number} ...')
 
-                progressbar(async_task, current_progress, f'Saving image {current_task_id + 1}/{image_number} to system ...')
-                for x in imgs:
-                    d = [('Prompt', 'prompt', task['log_positive_prompt']),
-                         ('Negative Prompt', 'negative_prompt', task['log_negative_prompt']),
-                         ('Fooocus V2 Expansion', 'prompt_expansion', task['expansion']),
-                         ('Styles', 'styles',
-                          str(task['styles'] if not use_expansion else [fooocus_expansion] + task['styles'])),
-                         ('Performance', 'performance', performance_selection.value)]
+            if async_task.last_stop is not False:
+                ldm_patched.modules.model_management.interrupt_current_processing()
 
-                    if performance_selection.steps() != steps:
-                        d.append(('Steps', 'steps', steps))
+            # Batch processing starts here
+            imgs_batch = pipeline.process_diffusion_batch(
+                positive_conds=positive_conds,
+                negative_conds=negative_conds,
+                steps=steps,
+                switch=switch,
+                width=width,
+                height=height,
+                seeds=seeds,
+                callback=callback,
+                sampler_name=final_sampler_name,
+                scheduler_name=final_scheduler_name,
+                latents=latents,
+                denoise=denoising_strength,
+                tiled=tiled,
+                cfg_scale=cfg_scale,
+                refiner_swap_method=refiner_swap_method,
+                disable_preview=disable_preview
+            )
+            # Batch processing ends here
 
-                    d += [('Resolution', 'resolution', str((width, height))),
-                          ('Guidance Scale', 'guidance_scale', guidance_scale),
-                          ('Sharpness', 'sharpness', sharpness),
-                          ('ADM Guidance', 'adm_guidance', str((
-                              modules.patch.patch_settings[pid].positive_adm_scale,
-                              modules.patch.patch_settings[pid].negative_adm_scale,
-                              modules.patch.patch_settings[pid].adm_scaler_end))),
-                          ('Base Model', 'base_model', base_model_name),
-                          ('Refiner Model', 'refiner_model', refiner_model_name),
-                          ('Refiner Switch', 'refiner_switch', refiner_switch)]
+            if async_task.last_stop is not False:
+                ldm_patched.modules.model_management.interrupt_current_processing()
 
-                    if refiner_model_name != 'None':
-                        if overwrite_switch > 0:
-                            d.append(('Overwrite Switch', 'overwrite_switch', overwrite_switch))
-                        if refiner_swap_method != flags.refiner_swap_method:
-                            d.append(('Refiner Swap Method', 'refiner_swap_method', refiner_swap_method))
-                    if modules.patch.patch_settings[pid].adaptive_cfg != modules.config.default_cfg_tsnr:
-                        d.append(
-                            ('CFG Mimicking from TSNR', 'adaptive_cfg', modules.patch.patch_settings[pid].adaptive_cfg))
+            imgs = imgs_batch[current_task_id]
 
-                    if clip_skip > 1:
-                        d.append(('CLIP Skip', 'clip_skip', clip_skip))
-                    d.append(('Sampler', 'sampler', sampler_name))
-                    d.append(('Scheduler', 'scheduler', scheduler_name))
-                    d.append(('VAE', 'vae', vae_name))
-                    d.append(('Seed', 'seed', str(task['task_seed'])))
+            if inpaint_worker.current_task is not None:
+                imgs = [inpaint_worker.current_task.post_process(x) for x in imgs]
 
-                    if freeu_enabled:
-                        d.append(('FreeU', 'freeu', str((freeu_b1, freeu_b2, freeu_s1, freeu_s2))))
+            img_paths = []
+            current_progress = int(flags.preparation_step_count + (100 - flags.preparation_step_count) * float((current_task_id + 1) * steps) / float(all_steps))
+            if modules.config.default_black_out_nsfw or black_out_nsfw:
+                progressbar(async_task, current_progress, 'Checking for NSFW content ...')
+                imgs = default_censor(imgs)
 
-                    for li, (n, w) in enumerate(loras):
-                        if n != 'None':
-                            d.append((f'LoRA {li + 1}', f'lora_combined_{li + 1}', f'{n} : {w}'))
+            progressbar(async_task, current_progress, f'Saving image {current_task_id + 1}/{image_number} to system ...')
+            for x in imgs:
+                d = [('Prompt', 'prompt', task['log_positive_prompt']),
+                    ('Negative Prompt', 'negative_prompt', task['log_negative_prompt']),
+                    ('Fooocus V2 Expansion', 'prompt_expansion', task['expansion']),
+                    ('Styles', 'styles',
+                    str(task['styles'] if not use_expansion else [fooocus_expansion] + task['styles'])),
+                    ('Performance', 'performance', performance_selection.value)]
 
-                    metadata_parser = None
-                    if save_metadata_to_images:
-                        metadata_parser = modules.meta_parser.get_metadata_parser(metadata_scheme)
-                        metadata_parser.set_data(task['log_positive_prompt'], task['positive'],
-                                                 task['log_negative_prompt'], task['negative'],
-                                                 steps, base_model_name, refiner_model_name, loras, vae_name)
-                    d.append(('Metadata Scheme', 'metadata_scheme',
-                              metadata_scheme.value if save_metadata_to_images else save_metadata_to_images))
-                    d.append(('Version', 'version', 'Fooocus v' + fooocus_version.version))
-                    img_paths.append(log(x, d, metadata_parser, output_format, task))
+                if performance_selection.steps() != steps:
+                    d.append(('Steps', 'steps', steps))
 
-                yield_result(async_task, img_paths, black_out_nsfw, False,
-                             do_not_show_finished_images=len(tasks) == 1 or disable_intermediate_results)
-            except ldm_patched.modules.model_management.InterruptProcessingException as e:
-                if async_task.last_stop == 'skip':
-                    print('User skipped')
-                    async_task.last_stop = False
-                    continue
-                else:
-                    print('User stopped')
-                    break
+                d += [('Resolution', 'resolution', str((width, height))),
+                    ('Guidance Scale', 'guidance_scale', guidance_scale),
+                    ('Sharpness', 'sharpness', sharpness),
+                    ('ADM Guidance', 'adm_guidance', str((
+                        modules.patch.patch_settings[pid].positive_adm_scale,
+                        modules.patch.patch_settings[pid].negative_adm_scale,
+                        modules.patch.patch_settings[pid].adm_scaler_end))),
+                    ('Base Model', 'base_model', base_model_name),
+                    ('Refiner Model', 'refiner_model', refiner_model_name),
+                    ('Refiner Switch', 'refiner_switch', refiner_switch)]
 
-            execution_time = time.perf_counter() - execution_start_time
-            print(f'Generating and saving time: {execution_time:.2f} seconds')
+                if refiner_model_name != 'None':
+                    if overwrite_switch > 0:
+                        d.append(('Overwrite Switch', 'overwrite_switch', overwrite_switch))
+                    if refiner_swap_method != flags.refiner_swap_method:
+                        d.append(('Refiner Swap Method', 'refiner_swap_method', refiner_swap_method))
+                if modules.patch.patch_settings[pid].adaptive_cfg != modules.config.default_cfg_tsnr:
+                    d.append(
+                        ('CFG Mimicking from TSNR', 'adaptive_cfg', modules.patch.patch_settings[pid].adaptive_cfg))
+
+                if clip_skip > 1:
+                    d.append(('CLIP Skip', 'clip_skip', clip_skip))
+                d.append(('Sampler', 'sampler', sampler_name))
+                d.append(('Scheduler', 'scheduler', scheduler_name))
+                d.append(('VAE', 'vae', vae_name))
+                d.append(('Seed', 'seed', str(task['task_seed'])))
+
+                if freeu_enabled:
+                    d.append(('FreeU', 'freeu', str((freeu_b1, freeu_b2, freeu_s1, freeu_s2))))
+
+                for li, (n, w) in enumerate(loras):
+                    if n != 'None':
+                        d.append((f'LoRA {li + 1}', f'lora_combined_{li + 1}', f'{n} : {w}'))
+
+                metadata_parser = None
+                if save_metadata_to_images:
+                    metadata_parser = modules.meta_parser.get_metadata_parser(metadata_scheme)
+                    metadata_parser.set_data(task['log_positive_prompt'], task['positive'],
+                                            task['log_negative_prompt'], task['negative'],
+                                            steps, base_model_name, refiner_model_name, loras, vae_name)
+                d.append(('Metadata Scheme', 'metadata_scheme',
+                        metadata_scheme.value if save_metadata_to_images else save_metadata_to_images))
+                d.append(('Version', 'version', 'Fooocus v' + fooocus_version.version))
+                img_paths.append(log(x, d, metadata_parser, output_format, task))
+
+            yield_result(async_task, img_paths, black_out_nsfw, False,
+                        do_not_show_finished_images=len(tasks) == 1 or disable_intermediate_results)
+        except ldm_patched.modules.model_management.InterruptProcessingException as e:
+            if async_task.last_stop == 'skip':
+                print('User skipped')
+                async_task.last_stop = False
+            else:
+                print('User stopped')
+
+        execution_time = time.perf_counter() - execution_start_time
+        print(f'Generating and saving time: {execution_time:.2f} seconds')
+
         async_task.processing = False
+
+
         return
 
     while True:

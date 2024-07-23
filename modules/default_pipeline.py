@@ -203,6 +203,35 @@ def clip_encode(texts, pool_top_k=1):
 
 @torch.no_grad()
 @torch.inference_mode()
+def batch_clip_encode(batch_texts, pool_top_k=1):
+    global final_clip
+
+    if final_clip is None:
+        return None
+    if not isinstance(batch_texts, list):
+        return None
+    if len(batch_texts) == 0:
+        return None
+
+    batch_cond_list = []
+    batch_pooled_acc = 0
+
+    for texts in batch_texts:
+        cond_list = []
+        pooled_acc = 0
+        for i, text in enumerate(texts):
+            cond, pooled = clip_encode_single(final_clip, text)
+            cond_list.append(cond)
+            if i < pool_top_k:
+                pooled_acc += pooled
+        batch_cond_list.append([torch.cat(cond_list, dim=1), {"pooled_output": pooled_acc}])
+        batch_pooled_acc += pooled_acc
+
+    return batch_cond_list
+
+
+@torch.no_grad()
+@torch.inference_mode()
 def set_clip_skip(clip_skip: int):
     global final_clip
 
@@ -211,6 +240,7 @@ def set_clip_skip(clip_skip: int):
 
     final_clip.clip_layer(-abs(clip_skip))
     return
+
 
 @torch.no_grad()
 @torch.inference_mode()
@@ -333,7 +363,7 @@ def get_candidate_vae(steps, switch, denoise=1.0, refiner_swap_method='joint'):
 
 @torch.no_grad()
 @torch.inference_mode()
-def process_diffusion(positive_cond, negative_cond, steps, switch, width, height, image_seed, callback, sampler_name, scheduler_name, latent=None, denoise=1.0, tiled=False, cfg_scale=7.0, refiner_swap_method='joint', disable_preview=False):
+def process_diffusion(positive_conds, negative_conds, steps, switch, width, height, image_seeds, callback, sampler_name, scheduler_name, latents=None, denoise=1.0, tiled=False, cfg_scale=7.0, refiner_swap_method='joint', disable_preview=False):
     target_unet, target_vae, target_refiner_unet, target_refiner_vae, target_clip \
         = final_unet, final_vae, final_refiner_unet, final_refiner_vae, final_clip
 
@@ -350,18 +380,18 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
                     = final_unet, final_vae, None, None
                 print(f'[Sampler] only use Base because of partial denoise.')
             else:
-                positive_cond = clip_separate(positive_cond, target_model=final_refiner_unet.model, target_clip=final_clip)
-                negative_cond = clip_separate(negative_cond, target_model=final_refiner_unet.model, target_clip=final_clip)
+                positive_conds = [clip_separate(positive_cond, target_model=final_refiner_unet.model, target_clip=final_clip) for positive_cond in positive_conds]
+                negative_conds = [clip_separate(negative_cond, target_model=final_refiner_unet.model, target_clip=final_clip) for negative_cond in negative_conds]
                 target_unet, target_vae, target_refiner_unet, target_refiner_vae \
                     = final_refiner_unet, final_refiner_vae, None, None
                 print(f'[Sampler] only use Refiner because of partial denoise.')
 
     print(f'[Sampler] refiner_swap_method = {refiner_swap_method}')
 
-    if latent is None:
-        initial_latent = core.generate_empty_latent(width=width, height=height, batch_size=1)
+    if latents is None:
+        initial_latents = [core.generate_empty_latent(width=width, height=height, batch_size=1) for _ in range(len(positive_conds))]
     else:
-        initial_latent = latent
+        initial_latents = latents
 
     minmax_sigmas = calculate_sigmas(sampler=sampler_name, scheduler=scheduler_name, model=final_unet.model, steps=steps, denoise=denoise)
     sigma_min, sigma_max = minmax_sigmas[minmax_sigmas > 0].min(), minmax_sigmas.max()
@@ -369,21 +399,22 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
     sigma_max = float(sigma_max.cpu().numpy())
     print(f'[Sampler] sigma_min = {sigma_min}, sigma_max = {sigma_max}')
 
-    modules.patch.BrownianTreeNoiseSamplerPatched.global_init(
-        initial_latent['samples'].to(ldm_patched.modules.model_management.get_torch_device()),
-        sigma_min, sigma_max, seed=image_seed, cpu=False)
+    for latent in initial_latents:
+        modules.patch.BrownianTreeNoiseSamplerPatched.global_init(
+            latent['samples'].to(ldm_patched.modules.model_management.get_torch_device()),
+            sigma_min, sigma_max, seed=image_seeds[initial_latents.index(latent)], cpu=False)
 
-    decoded_latent = None
+    decoded_latents = None
 
     if refiner_swap_method == 'joint':
-        sampled_latent = core.ksampler(
+        sampled_latents = core.ksampler(
             model=target_unet,
             refiner=target_refiner_unet,
-            positive=positive_cond,
-            negative=negative_cond,
-            latent=initial_latent,
+            positives=positive_conds,
+            negatives=negative_conds,
+            latents=initial_latents,
             steps=steps, start_step=0, last_step=steps, disable_noise=False, force_full_denoise=True,
-            seed=image_seed,
+            seed=image_seeds,
             denoise=denoise,
             callback_function=callback,
             cfg=cfg_scale,
@@ -394,16 +425,16 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
             previewer_end=steps,
             disable_preview=disable_preview
         )
-        decoded_latent = core.decode_vae(vae=target_vae, latent_image=sampled_latent, tiled=tiled)
+        decoded_latents = [core.decode_vae(vae=target_vae, latent_image=sampled_latent, tiled=tiled) for sampled_latent in sampled_latents]
 
     if refiner_swap_method == 'separate':
-        sampled_latent = core.ksampler(
+        sampled_latents = core.ksampler(
             model=target_unet,
-            positive=positive_cond,
-            negative=negative_cond,
-            latent=initial_latent,
+            positives=positive_conds,
+            negatives=negative_conds,
+            latents=initial_latents,
             steps=steps, start_step=0, last_step=switch, disable_noise=False, force_full_denoise=False,
-            seed=image_seed,
+            seed=image_seeds,
             denoise=denoise,
             callback_function=callback,
             cfg=cfg_scale,
@@ -420,13 +451,13 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
             target_model = target_unet
             print('Use base model to refine itself - this may because of developer mode.')
 
-        sampled_latent = core.ksampler(
+        sampled_latents = core.ksampler(
             model=target_model,
-            positive=clip_separate(positive_cond, target_model=target_model.model, target_clip=target_clip),
-            negative=clip_separate(negative_cond, target_model=target_model.model, target_clip=target_clip),
-            latent=sampled_latent,
+            positives=[clip_separate(positive_cond, target_model=target_model.model, target_clip=target_clip) for positive_cond in positive_conds],
+            negatives=[clip_separate(negative_cond, target_model=target_model.model, target_clip=target_clip) for negative_cond in negative_conds],
+            latents=sampled_latents,
             steps=steps, start_step=switch, last_step=steps, disable_noise=True, force_full_denoise=True,
-            seed=image_seed,
+            seed=image_seeds,
             denoise=denoise,
             callback_function=callback,
             cfg=cfg_scale,
@@ -440,7 +471,7 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
         target_model = target_refiner_vae
         if target_model is None:
             target_model = target_vae
-        decoded_latent = core.decode_vae(vae=target_model, latent_image=sampled_latent, tiled=tiled)
+        decoded_latents = [core.decode_vae(vae=target_model, latent_image=sampled_latent, tiled=tiled) for sampled_latent in sampled_latents]
 
     if refiner_swap_method == 'vae':
         modules.patch.patch_settings[os.getpid()].eps_record = 'vae'
@@ -448,13 +479,13 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
         if modules.inpaint_worker.current_task is not None:
             modules.inpaint_worker.current_task.unswap()
 
-        sampled_latent = core.ksampler(
+        sampled_latents = core.ksampler(
             model=target_unet,
-            positive=positive_cond,
-            negative=negative_cond,
-            latent=initial_latent,
+            positives=positive_conds,
+            negatives=negative_conds,
+            latents=initial_latents,
             steps=steps, start_step=0, last_step=switch, disable_noise=False, force_full_denoise=True,
-            seed=image_seed,
+            seed=image_seeds,
             denoise=denoise,
             callback_function=callback,
             cfg=cfg_scale,
@@ -471,7 +502,7 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
             target_model = target_unet
             print('Use base model to refine itself - this may because of developer mode.')
 
-        sampled_latent = vae_parse(sampled_latent)
+        sampled_latents = [vae_parse(sampled_latent) for sampled_latent in sampled_latents]
 
         k_sigmas = 1.4
         sigmas = calculate_sigmas(sampler=sampler_name,
@@ -486,13 +517,13 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
         if modules.inpaint_worker.current_task is not None:
             modules.inpaint_worker.current_task.swap()
 
-        sampled_latent = core.ksampler(
+        sampled_latents = core.ksampler(
             model=target_model,
-            positive=clip_separate(positive_cond, target_model=target_model.model, target_clip=target_clip),
-            negative=clip_separate(negative_cond, target_model=target_model.model, target_clip=target_clip),
-            latent=sampled_latent,
+            positives=[clip_separate(positive_cond, target_model=target_model.model, target_clip=target_clip) for positive_cond in positive_conds],
+            negatives=[clip_separate(negative_cond, target_model=target_model.model, target_clip=target_clip) for negative_cond in negative_conds],
+            latents=sampled_latents,
             steps=len_sigmas, start_step=0, last_step=len_sigmas, disable_noise=False, force_full_denoise=True,
-            seed=image_seed+1,
+            seed=[seed+1 for seed in image_seeds],
             denoise=denoise,
             callback_function=callback,
             cfg=cfg_scale,
@@ -508,8 +539,8 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
         target_model = target_refiner_vae
         if target_model is None:
             target_model = target_vae
-        decoded_latent = core.decode_vae(vae=target_model, latent_image=sampled_latent, tiled=tiled)
+        decoded_latents = [core.decode_vae(vae=target_model, latent_image=sampled_latent, tiled=tiled) for sampled_latent in sampled_latents]
 
-    images = core.pytorch_to_numpy(decoded_latent)
+    images = [core.pytorch_to_numpy(decoded_latent) for decoded_latent in decoded_latents]
     modules.patch.patch_settings[os.getpid()].eps_record = None
     return images

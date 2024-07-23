@@ -262,28 +262,28 @@ def get_previewer(model):
 
 @torch.no_grad()
 @torch.inference_mode()
-def ksampler(model, positive, negative, latent, seed=None, steps=30, cfg=7.0, sampler_name='dpmpp_2m_sde_gpu',
+def ksampler(model, positives, negatives, latents, seed=None, steps=30, cfg=7.0, sampler_name='dpmpp_2m_sde_gpu',
              scheduler='karras', denoise=1.0, disable_noise=False, start_step=None, last_step=None,
              force_full_denoise=False, callback_function=None, refiner=None, refiner_switch=-1,
              previewer_start=None, previewer_end=None, sigmas=None, noise_mean=None, disable_preview=False):
 
+    batch_size = len(latents)
+    
     if sigmas is not None:
         sigmas = sigmas.clone().to(ldm_patched.modules.model_management.get_torch_device())
 
-    latent_image = latent["samples"]
+    latent_images = torch.cat([latent["samples"] for latent in latents], dim=0)
 
     if disable_noise:
-        noise = torch.zeros(latent_image.size(), dtype=latent_image.dtype, layout=latent_image.layout, device="cpu")
+        noise = torch.zeros(latent_images.size(), dtype=latent_images.dtype, layout=latent_images.layout, device="cpu")
     else:
-        batch_inds = latent["batch_index"] if "batch_index" in latent else None
-        noise = ldm_patched.modules.sample.prepare_noise(latent_image, seed, batch_inds)
+        batch_inds = [latent["batch_index"] if "batch_index" in latent else None for latent in latents]
+        noise = ldm_patched.modules.sample.prepare_noise(latent_images, seed, batch_inds)
 
     if isinstance(noise_mean, torch.Tensor):
         noise = noise + noise_mean - torch.mean(noise, dim=1, keepdim=True)
 
-    noise_mask = None
-    if "noise_mask" in latent:
-        noise_mask = latent["noise_mask"]
+    noise_masks = [latent["noise_mask"] if "noise_mask" in latent else None for latent in latents]
 
     previewer = get_previewer(model)
 
@@ -309,20 +309,22 @@ def ksampler(model, positive, negative, latent, seed=None, steps=30, cfg=7.0, sa
     try:
         samples = ldm_patched.modules.sample.sample(model,
                                                     noise, steps, cfg, sampler_name, scheduler,
-                                                    positive, negative, latent_image,
+                                                    positives, negatives, latent_images,
                                                     denoise=denoise, disable_noise=disable_noise,
                                                     start_step=start_step,
                                                     last_step=last_step,
-                                                    force_full_denoise=force_full_denoise, noise_mask=noise_mask,
+                                                    force_full_denoise=force_full_denoise, noise_mask=noise_masks,
                                                     callback=callback,
                                                     disable_pbar=disable_pbar, seed=seed, sigmas=sigmas)
 
-        out = latent.copy()
-        out["samples"] = samples
+        outs = []
+        for i in range(batch_size):
+            out = latents[i].copy()
+            out["samples"] = samples[i:i + 1]
+            outs.append(out)
+        return outs
     finally:
         modules.sample_hijack.current_refiner = None
-
-    return out
 
 
 @torch.no_grad()
