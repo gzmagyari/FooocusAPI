@@ -1886,6 +1886,7 @@ def worker():
     while True:
         time.sleep(0.01)
         if len(async_tasks) > 0:
+            print("Processing task");
             task = async_tasks.pop(0)
             generate_image_grid = task.args.pop(0)
 
