@@ -790,8 +790,6 @@ def worker():
     @torch.no_grad()
     @torch.inference_mode()
     def refresh_base_model(name, vae_name=None):
-        global model_base
-
         filename = get_file_from_folder_list(name, modules.config.paths_checkpoints)
 
         vae_filename = None
@@ -809,8 +807,6 @@ def worker():
     @torch.no_grad()
     @torch.inference_mode()
     def synthesize_refiner_model():
-        global model_base, model_refiner
-
         print('Synthetic Refiner Activated')
         model_refiner = StableDiffusionModel(
             unet=model_base.unet,
@@ -828,8 +824,6 @@ def worker():
     @torch.no_grad()
     @torch.inference_mode()
     def refresh_refiner_model(name):
-        global model_refiner
-
         filename = get_file_from_folder_list(name, modules.config.paths_checkpoints)
 
         if model_refiner.filename == filename:
@@ -858,8 +852,6 @@ def worker():
     @torch.no_grad()
     @torch.inference_mode()
     def refresh_loras(loras, base_model_additional_loras=None):
-        global model_base, model_refiner
-
         if not isinstance(base_model_additional_loras, list):
             base_model_additional_loras = []
 
