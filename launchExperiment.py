@@ -763,6 +763,16 @@ def worker():
             print("error invalid scheduler", scheduler_name)
         return sigmas
 
+    def sampler_object(name):
+            #if name == "uni_pc":
+                #sampler = UNIPC()
+            #elif name == "uni_pc_bh2":
+                #sampler = UNIPCBH2()
+            if name == "ddim":
+                sampler = ksampler("euler", inpaint_options={"random": True})
+            else:
+                sampler = ksampler(name)
+            return sampler 
 
     class KSampler:
         SCHEDULERS = SCHEDULER_NAMES
@@ -794,6 +804,36 @@ def worker():
             if discard_penultimate_sigma:
                 sigmas = torch.cat([sigmas[:-2], sigmas[-1:]])
             return sigmas
+        def set_steps(self, steps, denoise=None):
+            self.steps = steps
+            if denoise is None or denoise > 0.9999:
+                self.sigmas = self.calculate_sigmas(steps).to(self.device)
+            else:
+                new_steps = int(steps/denoise)
+                sigmas = self.calculate_sigmas(new_steps).to(self.device)
+                self.sigmas = sigmas[-(steps + 1):]
+
+        def sample(self, noise, positive, negative, cfg, latent_image=None, start_step=None, last_step=None, force_full_denoise=False, denoise_mask=None, sigmas=None, callback=None, disable_pbar=False, seed=None):
+            if sigmas is None:
+                sigmas = self.sigmas
+
+            if last_step is not None and last_step < (len(sigmas) - 1):
+                sigmas = sigmas[:last_step + 1]
+                if force_full_denoise:
+                    sigmas[-1] = 0
+
+            if start_step is not None:
+                if start_step < (len(sigmas) - 1):
+                    sigmas = sigmas[start_step:]
+                else:
+                    if latent_image is not None:
+                        return latent_image
+                    else:
+                        return torch.zeros_like(noise)
+
+            sampler = sampler_object(self.sampler)
+
+            return sample(self.model, noise, positive, negative, cfg, self.device, sampler, sigmas, self.model_options, latent_image=latent_image, denoise_mask=denoise_mask, callback=callback, disable_pbar=disable_pbar, seed=seed)
 
 
 
