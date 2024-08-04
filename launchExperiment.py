@@ -769,9 +769,9 @@ def worker():
             #elif name == "uni_pc_bh2":
                 #sampler = UNIPCBH2()
             if name == "ddim":
-                sampler = ksampler("euler", inpaint_options={"random": True})
+                sampler = ldm_patched.modules.samplers.ksampler("euler", inpaint_options={"random": True})
             else:
-                sampler = ksampler(name)
+                sampler = ldm_patched.modules.samplers.ksampler(name)
             return sampler 
 
     class KSampler:
