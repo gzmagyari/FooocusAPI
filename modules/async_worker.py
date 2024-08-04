@@ -1042,4 +1042,4 @@ def worker():
     pass
 
 
-threading.Thread(target=worker, daemon=True).start()
+#threading.Thread(target=worker, daemon=True).start()
