@@ -949,6 +949,7 @@ def worker():
     @torch.no_grad()
     @torch.inference_mode()
     def prepare_text_encoder(async_call=True):
+        global final_clip, final_expansion
         if async_call:
             # TODO: make sure that this is always called in an async way so that users cannot feel it.
             pass
