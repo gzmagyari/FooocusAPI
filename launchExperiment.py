@@ -223,6 +223,7 @@ def worker():
     from ldm_patched.ldm.modules.diffusionmodules.openaimodel import UNetModel, Timestep
     from ldm_patched.modules.model_sampling import EPS, V_PREDICTION, ModelSamplingDiscrete, ModelSamplingContinuousEDM
     from ldm_patched.ldm.modules.encoders.noise_aug_modules import CLIPEmbeddingNoiseAugmentation
+    from modules.lora import match_lora
 
     MAX_RESOLUTION=8192
     SCHEDULER_NAMES = ["normal", "karras", "exponential", "sgm_uniform", "simple", "ddim_uniform"]
@@ -599,6 +600,64 @@ def worker():
         def refresh_loras(self, loras):
             assert isinstance(loras, list)
 
+            if self.visited_loras == str(loras):
+                return
+
+            self.visited_loras = str(loras)
+
+            if self.unet is None:
+                return
+
+            print(f'Request to load LoRAs {str(loras)} for model [{self.filename}].')
+
+            loras_to_load = []
+
+            for filename, weight in loras:
+                if filename == 'None':
+                    continue
+
+                if os.path.exists(filename):
+                    lora_filename = filename
+                else:
+                    lora_filename = get_file_from_folder_list(filename, modules.config.paths_loras)
+
+                if not os.path.exists(lora_filename):
+                    print(f'Lora file not found: {lora_filename}')
+                    continue
+
+                loras_to_load.append((lora_filename, weight))
+
+            self.unet_with_lora = self.unet.clone() if self.unet is not None else None
+            self.clip_with_lora = self.clip.clone() if self.clip is not None else None
+
+            for lora_filename, weight in loras_to_load:
+                lora_unmatch = ldm_patched.modules.utils.load_torch_file(lora_filename, safe_load=False)
+                lora_unet, lora_unmatch = match_lora(lora_unmatch, self.lora_key_map_unet)
+                lora_clip, lora_unmatch = match_lora(lora_unmatch, self.lora_key_map_clip)
+
+                if len(lora_unmatch) > 12:
+                    # model mismatch
+                    continue
+
+                if len(lora_unmatch) > 0:
+                    print(f'Loaded LoRA [{lora_filename}] for model [{self.filename}] '
+                        f'with unmatched keys {list(lora_unmatch.keys())}')
+
+                if self.unet_with_lora is not None and len(lora_unet) > 0:
+                    loaded_keys = self.unet_with_lora.add_patches(lora_unet, weight)
+                    print(f'Loaded LoRA [{lora_filename}] for UNet [{self.filename}] '
+                        f'with {len(loaded_keys)} keys at weight {weight}.')
+                    for item in lora_unet:
+                        if item not in loaded_keys:
+                            print("UNet LoRA key skipped: ", item)
+
+                if self.clip_with_lora is not None and len(lora_clip) > 0:
+                    loaded_keys = self.clip_with_lora.add_patches(lora_clip, weight)
+                    print(f'Loaded LoRA [{lora_filename}] for CLIP [{self.filename}] '
+                        f'with {len(loaded_keys)} keys at weight {weight}.')
+                    for item in lora_clip:
+                        if item not in loaded_keys:
+                            print("CLIP LoRA key skipped: ", item)
 
     class VAEDecode:
         @classmethod
