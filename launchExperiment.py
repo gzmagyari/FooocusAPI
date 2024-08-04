@@ -949,7 +949,7 @@ def worker():
     @torch.no_grad()
     @torch.inference_mode()
     def prepare_text_encoder(async_call=True):
-        global final_clip, final_expansion
+        nonlocal final_clip, final_expansion
         if async_call:
             # TODO: make sure that this is always called in an async way so that users cannot feel it.
             pass
@@ -966,7 +966,7 @@ def worker():
     @torch.inference_mode()
     def refresh_everything(refiner_model_name, base_model_name, loras,
                         base_model_additional_loras=None, use_synthetic_refiner=False, vae_name=None):
-        global final_unet, final_clip, final_vae, final_refiner_unet, final_refiner_vae, final_expansion
+        nonlocal final_unet, final_clip, final_vae, final_refiner_unet, final_refiner_vae, final_expansion
 
         nonlocal model_base
         nonlocal model_refiner
@@ -1427,7 +1427,7 @@ def worker():
     @torch.no_grad()
     @torch.inference_mode()
     def set_clip_skip(clip_skip: int):
-        global final_clip
+        nonlocal final_clip
 
         if final_clip is None:
             return
@@ -1453,7 +1453,7 @@ def worker():
     @torch.no_grad()
     @torch.inference_mode()
     def clip_encode(texts, pool_top_k=1):
-        global final_clip
+        nonlocal final_clip
 
         if final_clip is None:
             return None
