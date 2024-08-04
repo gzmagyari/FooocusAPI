@@ -81,8 +81,8 @@ def generate_image(prompt, steps=30, cfg_scale=7.0, width=512, height=512, sampl
     os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
     
     # Load models
-    base_model_path = 'path_to_base_model'
-    vae_model_path = 'path_to_vae_model'
+    base_model_path = '/root/examples/09_image_generation/sdxl/backend/stable_diffusion_weights/pandorasBoxNSFW_v1PussBoots.safetensors'
+    vae_model_path = None
     unet, clip, vae, vae_filename, clip_vision = load_checkpoint_guess_config(base_model_path, vae_filename_param=vae_model_path)
     model = StableDiffusionModel(unet=unet, clip=clip, vae=vae, clip_vision=clip_vision, filename=base_model_path, vae_filename=vae_model_path)
     
