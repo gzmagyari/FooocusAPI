@@ -166,7 +166,18 @@ def run_server(arguments):
     uvicorn.run(app, host=arguments.listen, port=api_port)
 
 
-run_server(args_manager.args)
+#run_server(args_manager.args)
+
+request = CommonRequest(
+    prompt="A beautiful landscape painting",
+    steps=30,
+    cfg_scale=7.5,
+    width=512,
+    height=512
+)
+
+result = async_worker(request=request, wait_for_result=True)
+print("result: ", result)
 
 """Async worker"""
 loaded_ControlNets = {}
