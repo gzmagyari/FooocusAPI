@@ -111,7 +111,8 @@ def generate_image(prompt, steps=30, cfg_scale=7.0, width=512, height=512, sampl
     decoded_image = decode_vae(vae=model.vae, latent_image=sampled_latent)
     
     # Convert the image to base64 (or save it as a file)
-    base64_image = narray_to_base64img(decoded_image.cpu().numpy())
+    decoded_image_np = decoded_image.cpu().numpy()
+    base64_image = narray_to_base64img(decoded_image_np)
     
     return base64_image
 
