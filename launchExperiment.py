@@ -791,6 +791,7 @@ def worker():
     @torch.inference_mode()
     def refresh_base_model(name, vae_name=None):
         filename = get_file_from_folder_list(name, modules.config.paths_checkpoints)
+        nonlocal model_base
 
         vae_filename = None
         if vae_name is not None and vae_name != modules.flags.default_vae:
@@ -808,6 +809,9 @@ def worker():
     @torch.inference_mode()
     def synthesize_refiner_model():
         print('Synthetic Refiner Activated')
+        nonlocal model_refiner
+        nonlocal model_base
+
         model_refiner = StableDiffusionModel(
             unet=model_base.unet,
             vae=model_base.vae,
@@ -826,7 +830,7 @@ def worker():
     def refresh_refiner_model(name):
         filename = get_file_from_folder_list(name, modules.config.paths_checkpoints)
         nonlocal model_refiner
-        
+
         if model_refiner.filename == filename:
             return
 
@@ -853,6 +857,8 @@ def worker():
     @torch.no_grad()
     @torch.inference_mode()
     def refresh_loras(loras, base_model_additional_loras=None):
+        nonlocal model_base
+        nonlocal model_refiner
         if not isinstance(base_model_additional_loras, list):
             base_model_additional_loras = []
 
@@ -864,6 +870,7 @@ def worker():
     @torch.no_grad()
     @torch.inference_mode()
     def assert_model_integrity():
+        nonlocal model_base
         error_message = None
 
         if not isinstance(model_base.unet_with_lora.model, SDXL):
@@ -894,6 +901,9 @@ def worker():
     def refresh_everything(refiner_model_name, base_model_name, loras,
                         base_model_additional_loras=None, use_synthetic_refiner=False, vae_name=None):
         global final_unet, final_clip, final_vae, final_refiner_unet, final_refiner_vae, final_expansion
+
+        nonlocal model_base
+        nonlocal model_refiner
 
         final_unet = None
         final_clip = None
