@@ -2012,4 +2012,5 @@ async def main():
 result = asyncio.run(main())
 print("result:")
 print(result)
-base64_to_image(result, "./result.png")
+base64str = result[0].preview
+base64_to_image(base64str, "./result.png")
