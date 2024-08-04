@@ -2016,5 +2016,5 @@ print(result)
 with open('result.txt', 'w') as f:
     #serializing
     f.write(json.dumps(result))
-base64str = result[0].preview
+base64str = result.base64_result[0]
 base64_to_image(base64str, "./result.png")
