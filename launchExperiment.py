@@ -176,8 +176,12 @@ request = CommonRequest(
     height=512
 )
 
-result = await async_worker(request=request, wait_for_result=True)
-print("result: ", result)
+async def main():
+    result = await async_worker(request=request, wait_for_result=True)
+    print("result: ", result)
+
+# Run the async function
+asyncio.run(main())
 
 """Async worker"""
 loaded_ControlNets = {}
