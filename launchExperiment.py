@@ -178,10 +178,12 @@ request = CommonRequest(
 
 async def main():
     result = await async_worker(request=request, wait_for_result=True)
-    print("result: ", result)
+    return result
 
 # Run the async function
-asyncio.run(main())
+result = asyncio.run(main())
+print("result:")
+print(result)
 
 """Async worker"""
 loaded_ControlNets = {}
