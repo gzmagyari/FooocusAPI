@@ -825,7 +825,8 @@ def worker():
     @torch.inference_mode()
     def refresh_refiner_model(name):
         filename = get_file_from_folder_list(name, modules.config.paths_checkpoints)
-
+        nonlocal model_refiner
+        
         if model_refiner.filename == filename:
             return
 
