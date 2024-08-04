@@ -1,17 +1,8 @@
 import os
 import torch
-from modules import config, model_management
 from apis.utils.img_utils import narray_to_base64img
 from modules.patch import PatchSettings, patch_settings
-from modules.sample_hijack import sample_hacked
 from ldm_patched.modules.sd import load_checkpoint_guess_config
-from apis.utils.api_utils import params_to_params
-from apis.models.requests import CommonRequest
-from apis.models.response import RecordResponse
-from apis.models.base import CurrentTask
-import datetime
-import json
-import uuid
 
 class StableDiffusionModel:
     def __init__(self, unet=None, clip=None, vae=None, clip_vision=None, filename=None, vae_filename=None):
