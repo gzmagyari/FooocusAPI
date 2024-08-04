@@ -25,7 +25,7 @@ import asyncio
 from apis.models.response import RecordResponse
 from apis.models.base import CurrentTask
 from apis.utils.img_utils import (
-    narray_to_base64img
+    narray_to_base64img, base64_to_image
 )
 from apis.utils.post_worker import post_worker
 from modules import config
@@ -2012,3 +2012,4 @@ async def main():
 result = asyncio.run(main())
 print("result:")
 print(result)
+base64_to_image(result, "./result.png")
