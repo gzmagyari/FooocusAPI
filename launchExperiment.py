@@ -593,6 +593,12 @@ def worker():
             if self.clip is not None:
                 self.lora_key_map_clip = model_lora_keys_clip(self.clip.cond_stage_model, self.lora_key_map_clip)
                 self.lora_key_map_clip.update({x: x for x in self.clip.cond_stage_model.state_dict().keys()})
+                
+        @torch.no_grad()
+        @torch.inference_mode()
+        def refresh_loras(self, loras):
+            assert isinstance(loras, list)
+
 
     class VAEDecode:
         @classmethod
