@@ -176,7 +176,7 @@ request = CommonRequest(
     height=512
 )
 
-result = async_worker(request=request, wait_for_result=True)
+result = await async_worker(request=request, wait_for_result=True)
 print("result: ", result)
 
 """Async worker"""
