@@ -743,7 +743,7 @@ def worker():
 
     try:
         async_gradio_app = shared.gradio_root
-        flag = f'''App started successful. Use the app with {str(async_gradio_app.local_url)} or {str(async_gradio_app.server_name)}:{str(async_gradio_app.server_port)}'''
+        flag = f'''App started successful.'''
         if async_gradio_app.share:
             flag += f''' or {async_gradio_app.share_url}'''
         print(flag)
