@@ -941,8 +941,8 @@ def worker():
         if not isinstance(model_base.unet_with_lora.model, SDXL):
             error_message = 'You have selected base model other than SDXL. This is not supported yet.'
 
-        if error_message is not None:
-            raise NotImplementedError(error_message)
+        #if error_message is not None:
+        #    raise NotImplementedError(error_message)
 
         return True
     
