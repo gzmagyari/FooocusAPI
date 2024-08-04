@@ -176,15 +176,6 @@ request = CommonRequest(
     height=512
 )
 
-async def main():
-    result = await async_worker(request=request, wait_for_result=True)
-    return result
-
-# Run the async function
-result = asyncio.run(main())
-print("result:")
-print(result)
-
 """Async worker"""
 loaded_ControlNets = {}
 VAE_approx_models = {}
@@ -1900,9 +1891,15 @@ def worker():
             finally:
                 if pid in modules.patch.patch_settings:
                     del modules.patch.patch_settings[pid]
-        else:
-            print("No task to process")
     pass
 
 
 threading.Thread(target=worker, daemon=True).start()
+
+async def main():
+    result = await async_worker(request=request, wait_for_result=True)
+    return result
+
+result = asyncio.run(main())
+print("result:")
+print(result)
