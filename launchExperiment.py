@@ -2468,9 +2468,7 @@ threading.Thread(target=worker, daemon=True).start()
 request = CommonRequest(
     prompt="a sexy naked girl, long hair, open legs, 4k",
     steps=30,
-    cfg_scale=7.5,
-    width=1024,
-    height=1024
+    cfg_scale=7.5
 )
 
 async def main():
