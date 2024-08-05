@@ -2469,8 +2469,8 @@ request = CommonRequest(
     prompt="a sexy naked girl, long hair, open legs, 4k",
     steps=30,
     cfg_scale=7.5,
-    width=512,
-    height=512
+    width=1024,
+    height=1024
 )
 
 async def main():
