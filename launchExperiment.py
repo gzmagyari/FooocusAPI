@@ -2011,11 +2011,10 @@ async def main():
     return result
 
 result = asyncio.run(main())
-print("result:")
-print(result)
 #writing the result to a file
 with open('result.txt', 'w') as f:
     #serializing
     f.write(json.dumps(result))
 base64str = result["base64_result"][0]
 base64_to_image(base64str, "./result.png")
+print("Image saved as result.png")
