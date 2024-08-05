@@ -2469,7 +2469,7 @@ request = CommonRequest(
     prompt="a cute cat, crisp clear, 4k, vivid colors, high resolution",
     negative_prompt="blurry, low resolution, pixelated",
     steps=30,
-    cfg_scale=7.5
+    cfg_scale=4
 )
 
 async def main():
