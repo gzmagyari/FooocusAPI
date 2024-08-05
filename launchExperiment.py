@@ -2466,7 +2466,8 @@ def worker():
 threading.Thread(target=worker, daemon=True).start()
 
 request = CommonRequest(
-    prompt="a cute cat",
+    prompt="a cute cat, crisp clear, 4k, vivid colors, high resolution",
+    negative_prompt="blurry, low resolution, pixelated",
     steps=30,
     cfg_scale=7.5
 )
