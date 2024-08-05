@@ -168,13 +168,6 @@ def run_server(arguments):
 
 #run_server(args_manager.args)
 
-request = CommonRequest(
-    prompt="A beautiful landscape painting",
-    steps=30,
-    cfg_scale=7.5,
-    width=512,
-    height=512
-)
 
 """Async worker"""
 loaded_ControlNets = {}
@@ -2004,6 +1997,14 @@ def worker():
 
 
 threading.Thread(target=worker, daemon=True).start()
+
+request = CommonRequest(
+    prompt="a cute cat",
+    steps=30,
+    cfg_scale=7.5,
+    width=512,
+    height=512
+)
 
 async def main():
     result = await async_worker(request=request, wait_for_result=True)
