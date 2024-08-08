@@ -72,7 +72,7 @@ Session = sessionmaker(bind=engine, autoflush=True)
 session = Session()
 
 # Path to cache model weights
-MODEL_PATH = "./fooocus_model_cache"
+MODEL_PATH = "./models"
 
 def load_file_from_url(
         url: str,
