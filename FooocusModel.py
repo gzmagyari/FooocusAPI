@@ -67,6 +67,7 @@ from classes.VAEApprox import VAEApprox
 from classes.StableDiffusionModel import StableDiffusionModel
 from classes.EmptyLatentImage import EmptyLatentImage
 from classes.FooocusExpansion import FooocusExpansion
+from classes.KSampler import KSampler
 
 from extras.censor import default_censor
 from modules.sdxl_styles import apply_style, get_random_style, fooocus_expansion, apply_arrays, random_style_name
