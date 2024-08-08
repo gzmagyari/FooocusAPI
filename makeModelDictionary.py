@@ -13,7 +13,7 @@ def makeModelDictionary(modelPath):
 
     return {
         checkPointPath: [
-            "https://huggingface.co/lllyasviel/fav_models/resolve/main/fav/juggernautXL_v8Rundiffusion.safetensors?download=true"
+            "https://huggingface.co/roguemcocdx/ModelsXL/resolve/main/pandorasBoxNSFW_v1PussBoots.safetensors?download=true"
         ],
         loraPath: [
             "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors?download=true",
