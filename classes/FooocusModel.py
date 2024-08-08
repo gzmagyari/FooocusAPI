@@ -55,7 +55,7 @@ import extras.ip_adapter as ip_adapter
 import fooocus_version
 import args_manager
 import extras.face_crop as face_crop
-from FooocusUtils import FooocusUtils
+from utils.FooocusUtils import FooocusUtils
 from classes.BaseModel import BaseModel
 from classes.VAEDecode import VAEDecode
 from classes.VAEDecodeTiled import VAEDecodeTiled
@@ -1845,25 +1845,3 @@ class FooocusModel():
 
         asyncio.create_task(self.execute_in_background(task, raw_req, in_queue_mills))
         return RecordResponse(task_id=task_id, task_status="pending").model_dump()
-
-model = FooocusModel()
-
-request = CommonRequest(
-    prompt="a cute cat, crisp clear, 4k, vivid colors, high resolution",
-    negative_prompt="blurry, low resolution, pixelated",
-    performance_selection = "Quality"
-)
-
-async def main():
-    await model.startInBackground()
-    result = await model.async_worker(request=request, wait_for_result=True)
-    return result
-
-result = asyncio.run(main())
-#writing the result to a file
-with open('result.txt', 'w') as f:
-    #serializing
-    f.write(json.dumps(result))
-base64str = result["base64_result"][0]
-base64_to_image(base64str, "./result.png")
-print("Image saved as result.png")

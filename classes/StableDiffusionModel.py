@@ -5,7 +5,7 @@ from modules.lora import match_lora
 import modules.config
 import modules.patch
 import ldm_patched.modules.model_management
-from FooocusUtils import FooocusUtils
+from utils.FooocusUtils import FooocusUtils
 
 class StableDiffusionModel:
     def __init__(self, unet=None, vae=None, clip=None, clip_vision=None, filename=None, vae_filename=None):

@@ -1,6 +1,6 @@
 from classes.BaseModel import BaseModel
 from classes.ModelType import ModelType
-from FooocusUtils import FooocusUtils
+from utils.FooocusUtils import FooocusUtils
 from ldm_patched.ldm.modules.diffusionmodules.openaimodel import Timestep
 from ldm_patched.ldm.modules.encoders.noise_aug_modules import CLIPEmbeddingNoiseAugmentation
 import torch

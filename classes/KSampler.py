@@ -5,7 +5,7 @@ from modules.lora import match_lora
 import modules.config
 import modules.patch
 import ldm_patched.modules.model_management
-from FooocusUtils import FooocusUtils
+from utils.FooocusUtils import FooocusUtils
 
 MAX_RESOLUTION=8192
 SCHEDULER_NAMES = ["normal", "karras", "exponential", "sgm_uniform", "simple", "ddim_uniform"]
