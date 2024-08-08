@@ -122,14 +122,14 @@ volume = Volume(name="fooocus_model_cache", mount_path=MODEL_PATH)
     volumes=[volume],
     on_start=load_model,
     image=Image(
-        python_version="python3.9",
+        python_version="python3.10",
         python_packages=[
             "fastapi",
             "sqlalchemy",
             "aiofiles",
             "uvicorn",
             "Pillow==9.4.0",
-            "torchsde==0.2.5",
+            "torchsde==0.2.6",  # Updated version to 0.2.6
             "einops==0.4.1",
             "transformers==4.30.2",
             "safetensors==0.3.1",
