@@ -68,34 +68,6 @@ engine = create_engine(
 Session = sessionmaker(bind=engine, autoflush=True)
 session = Session()
 
-#router = APIRouter()
-
-# @router.post(
-#         path="/v1/engine/generate/",
-#         summary="Generate endpoint all in one",
-#         tags=["GenerateV1"])
-# async def generate_routes(
-#     common_request: CommonRequest,
-#     accept: str = Header(None)):
-#     try:
-#         accept, ext = accept.lower().split("/")
-#         if ext not in ["png", "jpg", "jpeg", "webp"]:
-#             ext = 'png'
-#     except ValueError:
-#         pass
-
-#     return await async_worker(request=common_request, wait_for_result=True)
-
-
-# def run_server(arguments):
-#     api_port = 8888
-#     uvicorn.run(app, host=arguments.listen, port=api_port)
-
-
-#run_server(args_manager.args)
-
-
-
 model = FooocusModel()
 
 request = CommonRequest(
