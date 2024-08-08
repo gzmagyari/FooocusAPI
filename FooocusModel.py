@@ -6,6 +6,12 @@ import datetime
 import json
 from enum import Enum
 import asyncio
+import traceback
+import time
+import shared
+import random
+import copy
+import numpy as np
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -23,15 +29,13 @@ from build_launcher import build_launcher
 from modules.launch_util import delete_folder_content
 from apis.models.requests import CommonRequest
 from apis.utils.pre_process import pre_worker
-from modules.async_worker import AsyncTask, async_tasks
+from modules.async_worker import AsyncTask
 from apis.utils.api_utils import params_to_params
 from apis.utils.sql_client import GenerateRecord
 from modules.config import path_outputs
 from ldm_patched.ldm.modules.diffusionmodules.openaimodel import UNetModel, Timestep
 from modules.util import get_file_from_folder_list
 from modules.lora import match_lora
-from ldm_patched.k_diffusion import sampling as k_diffusion_sampling
-from ldm_patched.modules.model_sampling import EPS, V_PREDICTION, ModelSamplingDiscrete, ModelSamplingContinuousEDM
 from ldm_patched.ldm.modules.encoders.noise_aug_modules import CLIPEmbeddingNoiseAugmentation
 import ldm_patched.modules.utils as utils
 import modules.config
@@ -45,27 +49,14 @@ from apis.utils.img_utils import (
 from apis.utils.post_worker import post_worker
 from modules import config
 from modules.patch import PatchSettings, patch_settings
-
-
-
-
-import traceback
-import time
-import shared
-import random
-import copy
-import numpy as np
-
 import modules.flags as flags
-import modules.config
-import modules.patch
-import ldm_patched.modules.model_management
 import modules.inpaint_worker as inpaint_worker
 import modules.constants as constants
 import extras.ip_adapter as ip_adapter
 import fooocus_version
 import args_manager
 import extras.face_crop as face_crop
+from FooocusUtils import FooocusUtils
 from extras.censor import default_censor
 from modules.sdxl_styles import apply_style, get_random_style, fooocus_expansion, apply_arrays, random_style_name
 from modules.private_logger import log
@@ -83,10 +74,6 @@ import modules.core as core
 from ldm_patched.modules.sd import load_checkpoint_guess_config
 from modules.config import path_embeddings
 import extras.preprocessors as preprocessors
-
-
-
-
 
 print('[System ARGV] ' + str(sys.argv))
 
@@ -127,7 +114,6 @@ if args.gpu_device_id is not None:
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
     print("Set device to:", args.gpu_device_id)
 
-
 os.environ['GRADIO_TEMP_DIR'] = config.temp_path
 
 if config.temp_path_cleanup_on_launch:
@@ -155,186 +141,6 @@ engine = create_engine(
 Session = sessionmaker(bind=engine, autoflush=True)
 session = Session()
 
-def model_lora_keys_unet(model, key_map={}):
-    sdk = model.state_dict().keys()
-
-    for k in sdk:
-        if k.startswith("diffusion_model.") and k.endswith(".weight"):
-            key_lora = k[len("diffusion_model."):-len(".weight")].replace(".", "_")
-            key_map["lora_unet_{}".format(key_lora)] = k
-
-    diffusers_keys = ldm_patched.modules.utils.unet_to_diffusers(model.model_config.unet_config)
-    for k in diffusers_keys:
-        if k.endswith(".weight"):
-            unet_key = "diffusion_model.{}".format(diffusers_keys[k])
-            key_lora = k[:-len(".weight")].replace(".", "_")
-            key_map["lora_unet_{}".format(key_lora)] = unet_key
-
-            diffusers_lora_prefix = ["", "unet."]
-            for p in diffusers_lora_prefix:
-                diffusers_lora_key = "{}{}".format(p, k[:-len(".weight")].replace(".to_", ".processor.to_"))
-                if diffusers_lora_key.endswith(".to_out.0"):
-                    diffusers_lora_key = diffusers_lora_key[:-2]
-                key_map[diffusers_lora_key] = unet_key
-    return key_map
-
-def model_lora_keys_clip(model, key_map={}):
-    sdk = model.state_dict().keys()
-
-    text_model_lora_key = "lora_te_text_model_encoder_layers_{}_{}"
-    clip_l_present = False
-    for b in range(32): #TODO: clean up
-        for c in LORA_CLIP_MAP:
-            k = "clip_h.transformer.text_model.encoder.layers.{}.{}.weight".format(b, c)
-            if k in sdk:
-                lora_key = text_model_lora_key.format(b, LORA_CLIP_MAP[c])
-                key_map[lora_key] = k
-                lora_key = "lora_te1_text_model_encoder_layers_{}_{}".format(b, LORA_CLIP_MAP[c])
-                key_map[lora_key] = k
-                lora_key = "text_encoder.text_model.encoder.layers.{}.{}".format(b, c) #diffusers lora
-                key_map[lora_key] = k
-
-            k = "clip_l.transformer.text_model.encoder.layers.{}.{}.weight".format(b, c)
-            if k in sdk:
-                lora_key = text_model_lora_key.format(b, LORA_CLIP_MAP[c])
-                key_map[lora_key] = k
-                lora_key = "lora_te1_text_model_encoder_layers_{}_{}".format(b, LORA_CLIP_MAP[c]) #SDXL base
-                key_map[lora_key] = k
-                clip_l_present = True
-                lora_key = "text_encoder.text_model.encoder.layers.{}.{}".format(b, c) #diffusers lora
-                key_map[lora_key] = k
-
-            k = "clip_g.transformer.text_model.encoder.layers.{}.{}.weight".format(b, c)
-            if k in sdk:
-                if clip_l_present:
-                    lora_key = "lora_te2_text_model_encoder_layers_{}_{}".format(b, LORA_CLIP_MAP[c]) #SDXL base
-                    key_map[lora_key] = k
-                    lora_key = "text_encoder_2.text_model.encoder.layers.{}.{}".format(b, c) #diffusers lora
-                    key_map[lora_key] = k
-                else:
-                    lora_key = "lora_te_text_model_encoder_layers_{}_{}".format(b, LORA_CLIP_MAP[c]) #TODO: test if this is correct for SDXL-Refiner
-                    key_map[lora_key] = k
-                    lora_key = "text_encoder.text_model.encoder.layers.{}.{}".format(b, c) #diffusers lora
-                    key_map[lora_key] = k
-
-    return key_map        
-
-
-def unclip_adm(unclip_conditioning, device, noise_augmentor, noise_augment_merge=0.0, seed=None):
-    adm_inputs = []
-    weights = []
-    noise_aug = []
-    for unclip_cond in unclip_conditioning:
-        for adm_cond in unclip_cond["clip_vision_output"].image_embeds:
-            weight = unclip_cond["strength"]
-            noise_augment = unclip_cond["noise_augmentation"]
-            noise_level = round((noise_augmentor.max_noise_level - 1) * noise_augment)
-            c_adm, noise_level_emb = noise_augmentor(adm_cond.to(device), noise_level=torch.tensor([noise_level], device=device), seed=seed)
-            adm_out = torch.cat((c_adm, noise_level_emb), 1) * weight
-            weights.append(weight)
-            noise_aug.append(noise_augment)
-            adm_inputs.append(adm_out)
-
-    if len(noise_aug) > 1:
-        adm_out = torch.stack(adm_inputs).sum(0)
-        noise_augment = noise_augment_merge
-        noise_level = round((noise_augmentor.max_noise_level - 1) * noise_augment)
-        c_adm, noise_level_emb = noise_augmentor(adm_out[:, :noise_augmentor.time_embed.dim], noise_level=torch.tensor([noise_level], device=device))
-        adm_out = torch.cat((c_adm, noise_level_emb), 1)
-
-    return adm_out
-
-
-def sdxl_pooled(args, noise_augmentor):
-    if "unclip_conditioning" in args:
-        return unclip_adm(args.get("unclip_conditioning", None), args["device"], noise_augmentor, seed=args.get("seed", 0) - 10)[:,:1280]
-    else:
-        return args["pooled_output"]
-
-
-def model_sampling(model_config, model_type):
-    s = ModelSamplingDiscrete
-
-    if model_type == ModelType.EPS:
-        c = EPS
-    elif model_type == ModelType.V_PREDICTION:
-        c = V_PREDICTION
-    elif model_type == ModelType.V_PREDICTION_EDM:
-        c = V_PREDICTION
-        s = ModelSamplingContinuousEDM
-
-    class ModelSampling(s, c):
-        pass
-
-    return ModelSampling(model_config)
-
-def normal_scheduler(model, steps, sgm=False, floor=False):
-    s = model.model_sampling
-    start = s.timestep(s.sigma_max)
-    end = s.timestep(s.sigma_min)
-
-    if sgm:
-        timesteps = torch.linspace(start, end, steps + 1)[:-1]
-    else:
-        timesteps = torch.linspace(start, end, steps)
-
-    sigs = []
-    for x in range(len(timesteps)):
-        ts = timesteps[x]
-        sigs.append(s.sigma(ts))
-    sigs += [0.0]
-    return torch.FloatTensor(sigs)
-
-def simple_scheduler(model, steps):
-    s = model.model_sampling
-    sigs = []
-    ss = len(s.sigmas) / steps
-    for x in range(steps):
-        sigs += [float(s.sigmas[-(1 + int(x * ss))])]
-    sigs += [0.0]
-    return torch.FloatTensor(sigs)
-
-def ddim_scheduler(model, steps):
-    s = model.model_sampling
-    sigs = []
-    ss = len(s.sigmas) // steps
-    x = 1
-    while x < len(s.sigmas):
-        sigs += [float(s.sigmas[x])]
-        x += ss
-    sigs = sigs[::-1]
-    sigs += [0.0]
-    return torch.FloatTensor(sigs)
-
-
-def calculate_sigmas_scheduler(model, scheduler_name, steps):
-    if scheduler_name == "karras":
-        sigmas = k_diffusion_sampling.get_sigmas_karras(n=steps, sigma_min=float(model.model_sampling.sigma_min), sigma_max=float(model.model_sampling.sigma_max))
-    elif scheduler_name == "exponential":
-        sigmas = k_diffusion_sampling.get_sigmas_exponential(n=steps, sigma_min=float(model.model_sampling.sigma_min), sigma_max=float(model.model_sampling.sigma_max))
-    elif scheduler_name == "normal":
-        sigmas = normal_scheduler(model, steps)
-    elif scheduler_name == "simple":
-        sigmas = simple_scheduler(model, steps)
-    elif scheduler_name == "ddim_uniform":
-        sigmas = ddim_scheduler(model, steps)
-    elif scheduler_name == "sgm_uniform":
-        sigmas = normal_scheduler(model, steps, sgm=True)
-    else:
-        print("error invalid scheduler", scheduler_name)
-    return sigmas
-
-def sampler_object(name):
-        #if name == "uni_pc":
-            #sampler = UNIPC()
-        #elif name == "uni_pc_bh2":
-            #sampler = UNIPCBH2()
-        if name == "ddim":
-            sampler = ldm_patched.modules.samplers.ksampler("euler", inpaint_options={"random": True})
-        else:
-            sampler = ldm_patched.modules.samplers.ksampler(name)
-        return sampler 
-
 class ModelType(Enum):
         EPS = 1
         V_PREDICTION = 2
@@ -356,7 +162,7 @@ class BaseModel(torch.nn.Module):
                 operations = ldm_patched.modules.ops.disable_weight_init
             self.diffusion_model = UNetModel(**unet_config, device=device, operations=operations)
         self.model_type = model_type
-        self.model_sampling = model_sampling(model_config, model_type)
+        self.model_sampling = FooocusUtils.model_sampling(model_config, model_type)
 
         self.adm_channels = unet_config.get("adm_in_channels", None)
         if self.adm_channels is None:
@@ -516,7 +322,7 @@ class SDXL(BaseModel):
         self.noise_augmentor = CLIPEmbeddingNoiseAugmentation(**{"noise_schedule_config": {"timesteps": 1000, "beta_schedule": "squaredcos_cap_v2"}, "timestep_dim": 1280})
 
     def encode_adm(self, **kwargs):
-        clip_pooled = sdxl_pooled(kwargs, self.noise_augmentor)
+        clip_pooled = FooocusUtils.sdxl_pooled(kwargs, self.noise_augmentor)
         width = kwargs.get("width", 768)
         height = kwargs.get("height", 768)
         crop_w = kwargs.get("crop_w", 0)
@@ -541,7 +347,7 @@ class SDXLRefiner(BaseModel):
         self.noise_augmentor = CLIPEmbeddingNoiseAugmentation(**{"noise_schedule_config": {"timesteps": 1000, "beta_schedule": "squaredcos_cap_v2"}, "timestep_dim": 1280})
 
     def encode_adm(self, **kwargs):
-        clip_pooled = sdxl_pooled(kwargs, self.noise_augmentor)
+        clip_pooled = FooocusUtils.sdxl_pooled(kwargs, self.noise_augmentor)
         width = kwargs.get("width", 768)
         height = kwargs.get("height", 768)
         crop_w = kwargs.get("crop_w", 0)
@@ -618,11 +424,11 @@ class StableDiffusionModel:
         self.lora_key_map_clip = {}
 
         if self.unet is not None:
-            self.lora_key_map_unet = model_lora_keys_unet(self.unet.model, self.lora_key_map_unet)
+            self.lora_key_map_unet = FooocusUtils.model_lora_keys_unet(self.unet.model, self.lora_key_map_unet)
             self.lora_key_map_unet.update({x: x for x in self.unet.model.state_dict().keys()})
 
         if self.clip is not None:
-            self.lora_key_map_clip = model_lora_keys_clip(self.clip.cond_stage_model, self.lora_key_map_clip)
+            self.lora_key_map_clip = FooocusUtils.model_lora_keys_clip(self.clip.cond_stage_model, self.lora_key_map_clip)
             self.lora_key_map_clip.update({x: x for x in self.clip.cond_stage_model.state_dict().keys()})
             
     @torch.no_grad()
@@ -714,7 +520,7 @@ class KSampler:
             steps += 1
             discard_penultimate_sigma = True
 
-        sigmas = calculate_sigmas_scheduler(self.model, self.scheduler, steps)
+        sigmas = FooocusUtils.calculate_sigmas_scheduler(self.model, self.scheduler, steps)
 
         if discard_penultimate_sigma:
             sigmas = torch.cat([sigmas[:-2], sigmas[-1:]])
@@ -746,7 +552,7 @@ class KSampler:
                 else:
                     return torch.zeros_like(noise)
 
-        sampler = sampler_object(self.sampler)
+        sampler = FooocusUtils.sampler_object(self.sampler)
 
         return ldm_patched.modules.samplers.sample(self.model, noise, positive, negative, cfg, self.device, sampler, sigmas, self.model_options, latent_image=latent_image, denoise_mask=denoise_mask, callback=callback, disable_pbar=disable_pbar, seed=seed)
 
@@ -984,7 +790,7 @@ class FooocusModel():
             steps += 1
             discard_penultimate_sigma = True
 
-        sigmas = calculate_sigmas_scheduler(model, scheduler, steps)
+        sigmas = FooocusUtils.calculate_sigmas_scheduler(model, scheduler, steps)
 
         if discard_penultimate_sigma:
             sigmas = torch.cat([sigmas[:-2], sigmas[-1:]])
@@ -1018,14 +824,13 @@ class FooocusModel():
     @torch.no_grad()
     @torch.inference_mode()
     def get_previewer(self, model):
-        global VAE_approx_models
 
         from modules.config import path_vae_approx
         is_sdxl = isinstance(model.model.latent_format, ldm_patched.modules.latent_formats.SDXL)
         vae_approx_filename = os.path.join(path_vae_approx, 'xlvaeapp.pth' if is_sdxl else 'vaeapp_sd15.pth')
 
-        if vae_approx_filename in VAE_approx_models:
-            VAE_approx_model = VAE_approx_models[vae_approx_filename]
+        if vae_approx_filename in self.VAE_approx_models:
+            VAE_approx_model = self.VAE_approx_models[vae_approx_filename]
         else:
             sd = torch.load(vae_approx_filename, map_location='cpu')
             VAE_approx_model = VAEApprox()
@@ -1041,7 +846,7 @@ class FooocusModel():
                 VAE_approx_model.current_type = torch.float32
 
             VAE_approx_model.to(ldm_patched.modules.model_management.get_torch_device())
-            VAE_approx_models[vae_approx_filename] = VAE_approx_model
+            self.VAE_approx_models[vae_approx_filename] = VAE_approx_model
 
     def get_models_from_cond(self, cond, model_type):
         models = []
