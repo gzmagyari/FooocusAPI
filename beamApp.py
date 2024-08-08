@@ -128,7 +128,6 @@ volume = Volume(name="fooocus_model_cache", mount_path=MODEL_PATH)
             "sqlalchemy",
             "aiofiles",
             "uvicorn",
-            "Fooocus",
             "Pillow",
         ],
         base_image="docker.io/nvidia/cuda:12.3.1-runtime-ubuntu20.04",
