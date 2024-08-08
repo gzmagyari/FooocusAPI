@@ -66,7 +66,6 @@ from classes.SDXLRefiner import SDXLRefiner
 from classes.VAEApprox import VAEApprox
 from classes.StableDiffusionModel import StableDiffusionModel
 from classes.EmptyLatentImage import EmptyLatentImage
-from classes.FooocusExpansion import FooocusExpansion
 from classes.KSampler import KSampler
 
 from extras.censor import default_censor
