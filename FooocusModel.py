@@ -75,6 +75,8 @@ from ldm_patched.modules.sd import load_checkpoint_guess_config
 from modules.config import path_embeddings
 import extras.preprocessors as preprocessors
 
+from classes.ModelType import ModelType
+
 print('[System ARGV] ' + str(sys.argv))
 
 root = os.path.dirname(os.path.abspath(__file__))
@@ -141,10 +143,6 @@ engine = create_engine(
 Session = sessionmaker(bind=engine, autoflush=True)
 session = Session()
 
-class ModelType(Enum):
-        EPS = 1
-        V_PREDICTION = 2
-        V_PREDICTION_EDM = 3
 
 class BaseModel(torch.nn.Module):
     def __init__(self, model_config, model_type=ModelType.EPS, device=None):
@@ -557,7 +555,7 @@ class KSampler:
         return ldm_patched.modules.samplers.sample(self.model, noise, positive, negative, cfg, self.device, sampler, sigmas, self.model_options, latent_image=latent_image, denoise_mask=denoise_mask, callback=callback, disable_pbar=disable_pbar, seed=seed)
 
 
-router = APIRouter()
+#router = APIRouter()
 
 # @router.post(
 #         path="/v1/engine/generate/",
