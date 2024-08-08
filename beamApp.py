@@ -129,7 +129,7 @@ volume = Volume(name="fooocus_model_cache", mount_path=MODEL_PATH)
             "aiofiles",
             "uvicorn",
             "Pillow==9.4.0",
-            "torchsde==0.2.6",  # Updated version to 0.2.6
+            "torchsde==0.2.6",
             "einops==0.4.1",
             "transformers==4.30.2",
             "safetensors==0.3.1",
@@ -151,6 +151,10 @@ volume = Volume(name="fooocus_model_cache", mount_path=MODEL_PATH)
             "httpx"
         ],
         base_image="docker.io/nvidia/cuda:12.3.1-runtime-ubuntu20.04",
+        commands=[
+            # Install libGL and other dependencies
+            "apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0"
+        ]
     ),
     gpu="A10G",
     cpu=2,
