@@ -106,7 +106,7 @@ def download_files(file_dict: Dict[str, List[str]]):
             load_file_from_url(url, model_dir=directory)
 
 def load_model():
-    file_dict = makeModelDictionary()
+    file_dict = makeModelDictionary(MODEL_PATH)
     download_files(file_dict)
     model = FooocusModel()
     asyncio.run(model.startInBackground())
