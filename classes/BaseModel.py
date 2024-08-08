@@ -1,7 +1,7 @@
 import torch
 import ldm_patched.modules.model_management
 from ldm_patched.ldm.modules.diffusionmodules.openaimodel import UNetModel, Timestep
-from ModelType import ModelType
+from classes.ModelType import ModelType
 from FooocusUtils import FooocusUtils
 import ldm_patched.modules.utils as utils
 
