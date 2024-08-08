@@ -682,26 +682,26 @@ class FooocusModel():
     @torch.inference_mode()
     def refresh_refiner_model(self, name):
         filename = get_file_from_folder_list(name, modules.config.paths_checkpoints)
-        if model_refiner.filename == filename:
+        if self.model_refiner.filename == filename:
             return
 
-        model_refiner = StableDiffusionModel()
+        self.model_refiner = StableDiffusionModel()
 
         if name == 'None':
             print(f'Refiner unloaded.')
             return
 
-        model_refiner = self.load_model(filename)
-        print(f'Refiner model loaded: {model_refiner.filename}')
+        self.model_refiner = self.load_model(filename)
+        print(f'Refiner model loaded: {self.model_refiner.filename}')
 
-        if isinstance(model_refiner.unet.model, SDXL):
-            model_refiner.clip = None
-            model_refiner.vae = None
-        elif isinstance(model_refiner.unet.model, SDXLRefiner):
-            model_refiner.clip = None
-            model_refiner.vae = None
+        if isinstance(self.model_refiner.unet.model, SDXL):
+            self.model_refiner.clip = None
+            self.model_refiner.vae = None
+        elif isinstance(self.model_refiner.unet.model, SDXLRefiner):
+            self.model_refiner.clip = None
+            self.model_refiner.vae = None
         else:
-            model_refiner.clip = None
+            self.model_refiner.clip = None
 
         return
 
