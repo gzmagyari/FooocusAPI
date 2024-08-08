@@ -40,7 +40,10 @@ def ini_args():
     return args
 
 build_launcher()
-args = ini_args()
+try:
+    args = ini_args()
+except:
+    pass
 
 if args.gpu_device_id is not None:
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
@@ -130,7 +133,7 @@ volume = Volume(name="fooocus_model_cache", mount_path=MODEL_PATH)
         ],
         base_image="docker.io/nvidia/cuda:12.3.1-runtime-ubuntu20.04",
     ),
-    gpu="T4",
+    gpu="A100",
     cpu=2,
     memory="16Gi",
 )
