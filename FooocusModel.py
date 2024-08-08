@@ -2167,6 +2167,7 @@ class FooocusModel():
         return
 
     def start(self):
+        print("Start")
         while True:
             time.sleep(0.01)
             if len(self.async_tasks) > 0:
