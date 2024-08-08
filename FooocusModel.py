@@ -2248,7 +2248,6 @@ class FooocusModel():
         return RecordResponse(task_id=task_id, task_status="pending").model_dump()
 
 model = FooocusModel()
-model.startInBackground()
 
 request = CommonRequest(
     prompt="a cute cat, crisp clear, 4k, vivid colors, high resolution",
@@ -2257,6 +2256,7 @@ request = CommonRequest(
 )
 
 async def main():
+    await model.startInBackground()
     result = await model.async_worker(request=request, wait_for_result=True)
     return result
 
