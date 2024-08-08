@@ -652,12 +652,12 @@ class FooocusModel():
         if vae_name is not None and vae_name != modules.flags.default_vae:
             vae_filename = get_file_from_folder_list(vae_name, modules.config.path_vae)
 
-        if model_base.filename == filename and model_base.vae_filename == vae_filename:
+        if self.model_base.filename == filename and self.model_base.vae_filename == vae_filename:
             return
 
-        model_base = self.load_model(filename, vae_filename)
-        print(f'Base model loaded: {model_base.filename}')
-        print(f'VAE loaded: {model_base.vae_filename}')
+        self.model_base = self.load_model(filename, vae_filename)
+        print(f'Base model loaded: {self.model_base.filename}')
+        print(f'VAE loaded: {self.model_base.vae_filename}')
         return
     
     @torch.no_grad()
@@ -749,11 +749,11 @@ class FooocusModel():
     def refresh_everything(self, refiner_model_name, base_model_name, loras,
                         base_model_additional_loras=None, use_synthetic_refiner=False, vae_name=None):
 
-        final_unet = None
-        final_clip = None
-        final_vae = None
-        final_refiner_unet = None
-        final_refiner_vae = None
+        self.final_unet = None
+        self.final_clip = None
+        self.final_vae = None
+        self.final_refiner_unet = None
+        self.final_refiner_vae = None
 
         if use_synthetic_refiner and refiner_model_name == 'None':
             print('Synthetic Refiner Activated')
@@ -766,15 +766,15 @@ class FooocusModel():
         self.refresh_loras(loras, base_model_additional_loras=base_model_additional_loras)
         self.assert_model_integrity()
 
-        final_unet = self.model_base.unet_with_lora
-        final_clip = self.model_base.clip_with_lora
-        final_vae = self.model_base.vae
+        self.final_unet = self.model_base.unet_with_lora
+        self.final_clip = self.model_base.clip_with_lora
+        self.final_vae = self.model_base.vae
 
-        final_refiner_unet = self.model_refiner.unet_with_lora
-        final_refiner_vae = self.model_refiner.vae
+        self.final_refiner_unet = self.model_refiner.unet_with_lora
+        self.final_refiner_vae = self.model_refiner.vae
 
-        if final_expansion is None:
-            final_expansion = FooocusExpansion()
+        if self.final_expansion is None:
+            self.final_expansion = FooocusExpansion()
 
         self.prepare_text_encoder(async_call=True)
         self.clear_all_caches()
@@ -1906,11 +1906,11 @@ class FooocusModel():
                 latent_fill=latent_fill, latent_mask=latent_mask, latent_swap=latent_swap)
 
             if inpaint_parameterized:
-                final_unet = inpaint_worker.current_task.patch(
+                self.final_unet = inpaint_worker.current_task.patch(
                     inpaint_head_model_path=inpaint_head_model_path,
                     inpaint_latent=latent_inpaint,
                     inpaint_latent_mask=latent_mask,
-                    model=final_unet
+                    model=self.final_unet
                 )
 
             if not inpaint_disable_initial_latent:
@@ -1975,12 +1975,12 @@ class FooocusModel():
             all_ip_tasks = cn_tasks[flags.cn_ip] + cn_tasks[flags.cn_ip_face]
 
             if len(all_ip_tasks) > 0:
-                final_unet = ip_adapter.patch_model(final_unet, all_ip_tasks)
+                self.final_unet = ip_adapter.patch_model(self.final_unet, all_ip_tasks)
 
         if freeu_enabled:
             print(f'FreeU is enabled!')
-            final_unet = core.apply_freeu(
-                final_unet,
+            self.final_unet = core.apply_freeu(
+                self.final_unet,
                 freeu_b1,
                 freeu_b2,
                 freeu_s1,
@@ -2009,14 +2009,14 @@ class FooocusModel():
 
             def patch_discrete(unet):
                 return core.opModelSamplingDiscrete.patch(
-                    final_unet,
+                    self.final_unet,
                     sampling=scheduler_name,
                     zsnr=False)[0]
 
-            if final_unet is not None:
-                final_unet = patch_discrete(final_unet)
-            if final_refiner_unet is not None:
-                final_refiner_unet = patch_discrete(final_refiner_unet)
+            if self.final_unet is not None:
+                self.final_unet = patch_discrete(self.final_unet)
+            if self.final_refiner_unet is not None:
+                self.final_refiner_unet = patch_discrete(self.final_refiner_unet)
             print(f'Using {scheduler_name} scheduler.')
         elif scheduler_name == 'edm_playground_v2.5':
             final_scheduler_name = 'karras'
@@ -2028,10 +2028,10 @@ class FooocusModel():
                     sigma_max=120.0,
                     sigma_min=0.002)[0]
 
-            if final_unet is not None:
-                final_unet = patch_edm(final_unet)
-            if final_refiner_unet is not None:
-                final_refiner_unet = patch_edm(final_refiner_unet)
+            if self.final_unet is not None:
+                self.final_unet = patch_edm(self.final_unet)
+            if self.final_refiner_unet is not None:
+                self.final_refiner_unet = patch_edm(self.final_refiner_unet)
 
             print(f'Using {scheduler_name} scheduler.')
 
