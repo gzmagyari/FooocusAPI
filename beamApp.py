@@ -17,8 +17,10 @@ from modules.config import path_outputs
 from apis.utils.img_utils import base64_to_image
 from modules import config
 from classes.FooocusModel import FooocusModel
+from makeModelDictionary import makeModelDictionary
 import os
 import sys
+
 
 print('[System ARGV] ' + str(sys.argv))
 
@@ -104,14 +106,7 @@ def download_files(file_dict: Dict[str, List[str]]):
             load_file_from_url(url, model_dir=directory)
 
 def load_model():
-    file_dict = {
-        os.path.join(MODEL_PATH, "loras"): [
-            "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors?download=true"
-        ],
-        os.path.join(MODEL_PATH, "weights"): [
-            # Add other URLs as needed
-        ],
-    }
+    file_dict = makeModelDictionary()
     download_files(file_dict)
     model = FooocusModel()
     asyncio.run(model.startInBackground())
