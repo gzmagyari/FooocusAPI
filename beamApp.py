@@ -132,7 +132,7 @@ volume = Volume(name="fooocus_model_cache", mount_path=MODEL_PATH)
         ],
         base_image="docker.io/nvidia/cuda:12.3.1-runtime-ubuntu20.04",
     ),
-    gpu="A100",
+    gpu="A10G",
     cpu=2,
     memory="16Gi",
 )
