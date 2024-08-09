@@ -15,8 +15,8 @@ def initializeApp():
     import os
     import ssl
     import sys
-    from build_launcher import build_launcher
-    from modules import config
+    #from build_launcher import build_launcher
+    #from modules import config
 
     # sys.argv = [
     #     'beamApp.py',
@@ -45,7 +45,7 @@ def initializeApp():
         return args
 
     # Build the launcher
-    build_launcher()
+    #build_launcher()
 
     try:
         args = ini_args()
@@ -57,7 +57,7 @@ def initializeApp():
         os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
         print("Set device to:", args.gpu_device_id)
 
-    os.environ['GRADIO_TEMP_DIR'] = config.temp_path
+    #os.environ['GRADIO_TEMP_DIR'] = config.temp_path
 
     return load_model()
 
