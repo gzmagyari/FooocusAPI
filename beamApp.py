@@ -178,22 +178,21 @@ volume = Volume(name="fooocus_model_cache", mount_path="./fooocus_model_cache")
     cpu=2,
     memory="16Gi",
 )
-def generate_image(context, prompt: str, negative_prompt: str = None, width: int = 512, height: int = 512, performance_selection: str = "Quality"):
+async def generate_image(context, prompt: str, negative_prompt: str = None, width: int = 512, height: int = 512, performance_selection: str = "Quality"):
+    # Access the initialized model from the context
     model = context.on_start_value
 
+    # Create a request object for the model
     request = CommonRequest(
         prompt=prompt,
         negative_prompt=negative_prompt,
         performance_selection=performance_selection
     )
 
-    async def main():
-        result = await model.async_worker(request=request, wait_for_result=True)
-        return result
-
-    result = asyncio.run(main())
+    # Run the async task directly
+    result = await model.async_worker(request=request, wait_for_result=True)
     
-    # Save result image
+    # Process the result
     if "base64_result" in result:
         base64str = result["base64_result"][0]
         image = base64_to_image(base64str, "./result.png")
@@ -215,7 +214,8 @@ if __name__ == "__main__":
             negative_prompt="blurry, low resolution, pixelated",
             performance_selection="Quality"
         )
-        
+
+        # Execute the async main task
         async def main():
             result = await model.async_worker(request=request, wait_for_result=True)
             return result
