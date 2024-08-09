@@ -5,10 +5,10 @@ import json
 from beam import endpoint, Image, Volume, env, Output
 from urllib.parse import urlparse
 from typing import Optional, Dict, List
+from classes.FooocusModel import FooocusModel
 from apis.models.requests import CommonRequest
 from apis.utils.img_utils import base64_to_image
 from makeModelDictionary import makeModelDictionary
-from classes.FooocusModel import FooocusModel
 import os
 import ssl
 import sys
