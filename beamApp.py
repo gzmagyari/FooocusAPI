@@ -177,8 +177,8 @@ volume = Volume(name="fooocus_model_cache", mount_path="./fooocus_model_cache")
             "apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0"
         ]
     ),
-    gpu="RTX4090",
-    cpu=16,
+    gpu="A100-40",
+    cpu=4,
     memory="32Gi",
 )
 async def generate_image(context, prompt: str, negative_prompt: str = None, width: int = 512, height: int = 512, performance_selection: str = "Quality"):
