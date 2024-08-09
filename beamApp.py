@@ -1,66 +1,80 @@
-import sys
 import os
-import asyncio
+import ssl
 import json
+import asyncio
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from beam import endpoint, Image, Volume, env, Output
 from urllib.parse import urlparse
 from typing import Optional, Dict, List
-from classes.FooocusModel import FooocusModel
+
+from build_launcher import build_launcher
+from modules.launch_util import delete_folder_content
 from apis.models.requests import CommonRequest
+from modules.config import path_outputs
 from apis.utils.img_utils import base64_to_image
+from modules import config
+from classes.FooocusModel import FooocusModel
 from makeModelDictionary import makeModelDictionary
 import os
-import ssl
 import sys
-import shutil
 
-def initializeApp():
 
-    #from build_launcher import build_launcher
-    #from modules import config
+print('[System ARGV] ' + str(sys.argv))
 
-    # sys.argv = [
-    #     'beamApp.py',
-    #     '--output-path', '/models/outputs',
-    #     '--temp-path', '/models/temp',
-    #     '--cache-path', '/models/cache',
-    #     '--disable-offload-from-vram',
-    #     '--disable-image-log',
-    #     '--always-high-vram'
-    # ]
+root = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(root)
+os.chdir(root)
 
-    # Ensure the correct root directory
-    # root = os.path.dirname(os.path.abspath(__file__))
-    # sys.path.insert(0, root)  # Insert root at the beginning of sys.path
-    # os.chdir(root)
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
+if "GRADIO_SERVER_PORT" not in os.environ:
+    os.environ["GRADIO_SERVER_PORT"] = "7865"
 
-    # Set necessary environment variables
-    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-    os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
-    os.environ.setdefault("GRADIO_SERVER_PORT", "7865")
-    
-    ssl._create_default_https_context = ssl._create_unverified_context
+ssl._create_default_https_context = ssl._create_unverified_context
 
-    def ini_args():
-        from args_manager import args
-        return args
+def ini_args():
+    from args_manager import args
+    return args
 
-    # Build the launcher
-    #build_launcher()
+build_launcher()
+try:
+    args = ini_args()
+except:
+    pass
 
-    try:
-        args = ini_args()
-    except Exception as e:
-        print(f"Error initializing args: {e}")
-        args = None
+if args.gpu_device_id is not None:
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
+    print("Set device to:", args.gpu_device_id)
 
-    if args and args.gpu_device_id is not None:
-        os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
-        print("Set device to:", args.gpu_device_id)
+os.environ['GRADIO_TEMP_DIR'] = config.temp_path
 
-    #os.environ['GRADIO_TEMP_DIR'] = config.temp_path
+if config.temp_path_cleanup_on_launch:
+    print(f'[Cleanup] Attempting to delete content of temp dir {config.temp_path}')
+    result = delete_folder_content(config.temp_path, '[Cleanup] ')
+    if result:
+        print("[Cleanup] Cleanup successful")
+    else:
+        print(f"[Cleanup] Failed to delete content of temp dir.")
 
-    return load_model()
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow access from all sources
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all request headers
+)
+
+engine = create_engine(
+    f"sqlite:///{path_outputs}/db.sqlite3",
+    connect_args={"check_same_thread": False},
+    future=True
+)
+Session = sessionmaker(bind=engine, autoflush=True)
+session = Session()
 
 # Path to cache model weights
 MODEL_PATH = "/models"
@@ -89,49 +103,13 @@ def load_file_from_url(
         download_url_to_file(url, cached_file, progress=progress)
     return cached_file
 
-def copy_models_directory(source="./models", destination="/models"):
-    # Check if the source directory exists
-    if not os.path.exists(source):
-        raise FileNotFoundError(f"The source directory {source} does not exist.")
-
-    # Ensure the destination directory exists; if not, create it
-    if not os.path.exists(destination):
-        os.makedirs(destination)
-
-    # Copy all files and directories from the source to the destination
-    for item in os.listdir(source):
-        src_path = os.path.join(source, item)
-        dest_path = os.path.join(destination, item)
-        
-        # Check if it is a file or directory
-        if os.path.isdir(src_path):
-            try:
-                shutil.copytree(src_path, dest_path, dirs_exist_ok=True)
-            except FileExistsError:
-                pass  # Ignore if the directory already exists
-        else:
-            try:
-                shutil.copy2(src_path, dest_path)
-            except shutil.SameFileError:
-                pass  # Ignore if the file already exists
-
-    print(f"All files and directories have been copied from {source} to {destination}.")
-
-# Example usage:
-# copy_models_directory("./models", "/models")
-
 def download_files(file_dict: Dict[str, List[str]]):
     for directory, urls in file_dict.items():
         for url in urls:
-            if "@@" in url:
-                url, file_name = url.split("@@")
-                load_file_from_url(url, model_dir=directory, file_name=file_name)
-            else:
-                load_file_from_url(url, model_dir=directory)
+            load_file_from_url(url, model_dir=directory)
 
 def load_model():
     file_dict = makeModelDictionary(MODEL_PATH)
-    copy_models_directory(source="./models", destination=MODEL_PATH)
     download_files(file_dict)
     model = FooocusModel()
     asyncio.run(model.startInBackground())
@@ -142,7 +120,7 @@ volume = Volume(name="fooocus_model_cache", mount_path=MODEL_PATH)
 @endpoint(
     name="fooocus-ai-service",
     volumes=[volume],
-    on_start=initializeApp,
+    on_start=load_model,
     image=Image(
         python_version="python3.10",
         python_packages=[
@@ -213,7 +191,7 @@ if __name__ == "__main__":
     if env.is_remote():
         generate_image.serve()
     else:
-        model = initializeApp()
+        model = load_model()
         request = CommonRequest(
             prompt="a cute cat, crisp clear, 4k, vivid colors, high resolution",
             negative_prompt="blurry, low resolution, pixelated",
