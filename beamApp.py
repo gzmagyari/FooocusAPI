@@ -1,42 +1,37 @@
-import sys
 import os
-import asyncio
+import ssl
 import json
+import asyncio
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from beam import endpoint, Image, Volume, env, Output
 from urllib.parse import urlparse
 from typing import Optional, Dict, List
-from classes.FooocusModel import FooocusModel
+
+from build_launcher import build_launcher
+from modules.launch_util import delete_folder_content
 from apis.models.requests import CommonRequest
+from modules.config import path_outputs
 from apis.utils.img_utils import base64_to_image
+from modules import config
+from classes.FooocusModel import FooocusModel
 from makeModelDictionary import makeModelDictionary
 import os
-import ssl
 import sys
 import shutil
 
+print('[System ARGV] ' + str(sys.argv))
 
-#from build_launcher import build_launcher
-#from modules import config
+root = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(root)
+os.chdir(root)
 
-# sys.argv = [
-#     'beamApp.py',
-#     '--output-path', '/models/outputs',
-#     '--temp-path', '/models/temp',
-#     '--cache-path', '/models/cache',
-#     '--disable-offload-from-vram',
-#     '--disable-image-log',
-#     '--always-high-vram'
-# ]
-
-# Ensure the correct root directory
-# root = os.path.dirname(os.path.abspath(__file__))
-# sys.path.insert(0, root)  # Insert root at the beginning of sys.path
-# os.chdir(root)
-
-# Set necessary environment variables
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
-os.environ.setdefault("GRADIO_SERVER_PORT", "7865")
+if "GRADIO_SERVER_PORT" not in os.environ:
+    os.environ["GRADIO_SERVER_PORT"] = "7865"
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -44,22 +39,42 @@ def ini_args():
     from args_manager import args
     return args
 
-# Build the launcher
-#build_launcher()
-
+build_launcher()
 try:
     args = ini_args()
-except Exception as e:
-    print(f"Error initializing args: {e}")
-    args = None
+except:
+    pass
 
-if args and args.gpu_device_id is not None:
+if args.gpu_device_id is not None:
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
     print("Set device to:", args.gpu_device_id)
 
-#os.environ['GRADIO_TEMP_DIR'] = config.temp_path
+os.environ['GRADIO_TEMP_DIR'] = config.temp_path
 
-#return load_model()
+if config.temp_path_cleanup_on_launch:
+    print(f'[Cleanup] Attempting to delete content of temp dir {config.temp_path}')
+    result = delete_folder_content(config.temp_path, '[Cleanup] ')
+    if result:
+        print("[Cleanup] Cleanup successful")
+    else:
+        print(f"[Cleanup] Failed to delete content of temp dir.")
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow access from all sources
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all request headers
+)
+
+engine = create_engine(
+    f"sqlite:///{path_outputs}/db.sqlite3",
+    connect_args={"check_same_thread": False},
+    future=True
+)
+Session = sessionmaker(bind=engine, autoflush=True)
+session = Session()
 
 # Path to cache model weights
 MODEL_PATH = "/models"
