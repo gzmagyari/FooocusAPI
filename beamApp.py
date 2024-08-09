@@ -41,6 +41,16 @@ def initializeApp():
     
     ssl._create_default_https_context = ssl._create_unverified_context
 
+    sys.argv = [
+        'beamApp.py',
+        '--output-path', '/models/outputs',
+        '--temp-path', '/models/temp',
+        '--cache-path', '/models/cache',
+        '--disable-offload-from-vram',
+        '--disable-image-log',
+        '--always-high-vram'
+    ]
+
     def ini_args():
         from args_manager import args
         return args
