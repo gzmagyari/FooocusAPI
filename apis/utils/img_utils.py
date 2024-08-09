@@ -73,6 +73,7 @@ def base64_to_image(base64_str: str, file_path: str):
     img_data = base64.b64decode(base64_str)
     img = Image.open(BytesIO(img_data))
     img.save(file_path)
+    return img
 
 def narray_to_bytesimg(narray) -> bytes | None:
     """
