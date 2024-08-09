@@ -7,7 +7,6 @@ sys.argv = [
     '--cache-path', '/models/cache',
     '--disable-offload-from-vram',
     '--disable-image-log',
-    '--always-gpu',
     '--always-high-vram'
 ]
 
