@@ -35,22 +35,6 @@ if "GRADIO_SERVER_PORT" not in os.environ:
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
-def ini_args():
-    from args_manager import args
-    return args
-
-build_launcher()
-try:
-    args = ini_args()
-except:
-    pass
-
-if args.gpu_device_id is not None:
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
-    print("Set device to:", args.gpu_device_id)
-
-os.environ['GRADIO_TEMP_DIR'] = config.temp_path
-
 
 # Path to cache model weights
 MODEL_PATH = "/models"
