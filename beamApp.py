@@ -21,6 +21,7 @@ from classes.FooocusModel import FooocusModel
 from apis.models.requests import CommonRequest
 from apis.utils.img_utils import base64_to_image
 from makeModelDictionary import makeModelDictionary
+import shutil
 
 def initializeApp():
     import os
@@ -91,6 +92,29 @@ def load_file_from_url(
         download_url_to_file(url, cached_file, progress=progress)
     return cached_file
 
+
+def copy_models_directory(source="./models", destination="/models"):
+    # Check if the source directory exists
+    if not os.path.exists(source):
+        raise FileNotFoundError(f"The source directory {source} does not exist.")
+
+    # Ensure the destination directory exists; if not, create it
+    if not os.path.exists(destination):
+        os.makedirs(destination)
+
+    # Copy all files and directories from the source to the destination
+    for item in os.listdir(source):
+        src_path = os.path.join(source, item)
+        dest_path = os.path.join(destination, item)
+        
+        # Check if it is a file or directory
+        if os.path.isdir(src_path):
+            shutil.copytree(src_path, dest_path)
+        else:
+            shutil.copy2(src_path, dest_path)
+
+    print(f"All files and directories have been copied from {source} to {destination}.")
+
 def download_files(file_dict: Dict[str, List[str]]):
     for directory, urls in file_dict.items():
         for url in urls:
@@ -102,6 +126,7 @@ def download_files(file_dict: Dict[str, List[str]]):
 
 def load_model():
     file_dict = makeModelDictionary(MODEL_PATH)
+    copy_models_directory(source="./models", destination=MODEL_PATH)
     download_files(file_dict)
     model = FooocusModel()
     asyncio.run(model.startInBackground())
