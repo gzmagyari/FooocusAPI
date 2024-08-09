@@ -62,7 +62,7 @@ def makeModelDictionary(modelPath):
             "https://huggingface.co/mashb1t/misc/resolve/main/xl-to-v1_interposer-v4.0.safetensors"
         ],
         promptExpansionPath: [
-            "https://huggingface.co/3WaD/RunPod-Fooocus-API/resolve/main/v0.3.30/fooocus_expansion.bin?download=true"
+            "https://huggingface.co/3WaD/RunPod-Fooocus-API/resolve/main/v0.3.30/fooocus_expansion.bin?download=true@@pytorch_model.bin"
         ],
         safetyCheckerPath: [
             "https://huggingface.co/3WaD/RunPod-Fooocus-API/resolve/main/v0.3.30/stable-diffusion-safety-checker.bin?download=true"

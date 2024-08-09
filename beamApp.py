@@ -94,7 +94,11 @@ def load_file_from_url(
 def download_files(file_dict: Dict[str, List[str]]):
     for directory, urls in file_dict.items():
         for url in urls:
-            load_file_from_url(url, model_dir=directory)
+            if "@@" in url:
+                url, file_name = url.split("@@")
+                load_file_from_url(url, model_dir=directory, file_name=file_name)
+            else:
+                load_file_from_url(url, model_dir=directory)
 
 def load_model():
     file_dict = makeModelDictionary(MODEL_PATH)
