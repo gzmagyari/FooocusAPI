@@ -14,53 +14,52 @@ import ssl
 import sys
 import shutil
 
-def initializeApp():
 
-    #from build_launcher import build_launcher
-    #from modules import config
+#from build_launcher import build_launcher
+#from modules import config
 
-    # sys.argv = [
-    #     'beamApp.py',
-    #     '--output-path', '/models/outputs',
-    #     '--temp-path', '/models/temp',
-    #     '--cache-path', '/models/cache',
-    #     '--disable-offload-from-vram',
-    #     '--disable-image-log',
-    #     '--always-high-vram'
-    # ]
+# sys.argv = [
+#     'beamApp.py',
+#     '--output-path', '/models/outputs',
+#     '--temp-path', '/models/temp',
+#     '--cache-path', '/models/cache',
+#     '--disable-offload-from-vram',
+#     '--disable-image-log',
+#     '--always-high-vram'
+# ]
 
-    # Ensure the correct root directory
-    # root = os.path.dirname(os.path.abspath(__file__))
-    # sys.path.insert(0, root)  # Insert root at the beginning of sys.path
-    # os.chdir(root)
+# Ensure the correct root directory
+# root = os.path.dirname(os.path.abspath(__file__))
+# sys.path.insert(0, root)  # Insert root at the beginning of sys.path
+# os.chdir(root)
 
-    # Set necessary environment variables
-    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-    os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
-    os.environ.setdefault("GRADIO_SERVER_PORT", "7865")
-    
-    ssl._create_default_https_context = ssl._create_unverified_context
+# Set necessary environment variables
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
+os.environ.setdefault("GRADIO_SERVER_PORT", "7865")
 
-    def ini_args():
-        from args_manager import args
-        return args
+ssl._create_default_https_context = ssl._create_unverified_context
 
-    # Build the launcher
-    #build_launcher()
+def ini_args():
+    from args_manager import args
+    return args
 
-    try:
-        args = ini_args()
-    except Exception as e:
-        print(f"Error initializing args: {e}")
-        args = None
+# Build the launcher
+#build_launcher()
 
-    if args and args.gpu_device_id is not None:
-        os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
-        print("Set device to:", args.gpu_device_id)
+try:
+    args = ini_args()
+except Exception as e:
+    print(f"Error initializing args: {e}")
+    args = None
 
-    #os.environ['GRADIO_TEMP_DIR'] = config.temp_path
+if args and args.gpu_device_id is not None:
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
+    print("Set device to:", args.gpu_device_id)
 
-    #return load_model()
+#os.environ['GRADIO_TEMP_DIR'] = config.temp_path
+
+#return load_model()
 
 # Path to cache model weights
 MODEL_PATH = "/models"
@@ -137,7 +136,7 @@ def load_model():
     asyncio.run(model.startInBackground())
     return model
 
-initializeApp()
+#initializeApp()
 
 volume = Volume(name="fooocus_model_cache", mount_path=MODEL_PATH)
 
