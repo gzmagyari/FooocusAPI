@@ -18,7 +18,7 @@ from apis.utils.img_utils import read_input_image
 from apis.models.base import Lora, ImagePrompt
 
 #ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ROOT_DIR = "/models"
+ROOT_DIR = "/volumes/fooocus_model_cache"
 INPUT_PATH = os.path.join(ROOT_DIR, '..', 'inputs')
 
 

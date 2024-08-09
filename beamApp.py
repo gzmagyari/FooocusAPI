@@ -62,7 +62,7 @@ def initializeApp():
     return load_model()
 
 # Path to cache model weights
-MODEL_PATH = "/models"
+MODEL_PATH = "/volumes/fooocus_model_cache"
 
 def load_file_from_url(
         url: str,
@@ -88,7 +88,7 @@ def load_file_from_url(
         download_url_to_file(url, cached_file, progress=progress)
     return cached_file
 
-def copy_models_directory(source="./models", destination="/models"):
+def copy_models_directory(source="./models", destination="/volumes/fooocus_model_cache"):
     # Check if the source directory exists
     if not os.path.exists(source):
         raise FileNotFoundError(f"The source directory {source} does not exist.")
@@ -116,9 +116,6 @@ def copy_models_directory(source="./models", destination="/models"):
 
     print(f"All files and directories have been copied from {source} to {destination}.")
 
-# Example usage:
-# copy_models_directory("./models", "/models")
-
 def download_files(file_dict: Dict[str, List[str]]):
     for directory, urls in file_dict.items():
         for url in urls:
@@ -136,7 +133,7 @@ def load_model():
     asyncio.run(model.startInBackground())
     return model
 
-volume = Volume(name="fooocus_model_cache", mount_path=MODEL_PATH)
+volume = Volume(name="fooocus_model_cache", mount_path="./fooocus_model_cache")
 
 @endpoint(
     name="fooocus-ai-service",

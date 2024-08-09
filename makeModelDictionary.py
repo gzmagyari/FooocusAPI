@@ -11,15 +11,15 @@ def makeModelDictionary(modelPath):
     promptExpansionPath = os.path.join(modelPath, "prompt_expansion/fooocus_expansion")
     safetyCheckerPath = os.path.join(modelPath, "safety_checker")
 
-    checkPointPath = "/models/checkpoints"
-    loraPath = "/models/loras"
-    inpaintPath = "/models/inpaint"
-    controlNetPath = "/models/controlnet"
-    upscaleModelsPath = "/models/upscale_models"
-    clipVisionPath = "/models/clip_vision"
-    vaeApproxPath = "/models/vae_approx"
-    promptExpansionPath = "/models/prompt_expansion/fooocus_expansion"
-    safetyCheckerPath = "/models/safety_checker"
+    # checkPointPath = "/models/checkpoints"
+    # loraPath = "/models/loras"
+    # inpaintPath = "/models/inpaint"
+    # controlNetPath = "/models/controlnet"
+    # upscaleModelsPath = "/models/upscale_models"
+    # clipVisionPath = "/models/clip_vision"
+    # vaeApproxPath = "/models/vae_approx"
+    # promptExpansionPath = "/models/prompt_expansion/fooocus_expansion"
+    # safetyCheckerPath = "/models/safety_checker"
 
     return {
         checkPointPath: [

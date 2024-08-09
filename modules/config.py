@@ -208,19 +208,19 @@ def check_and_create_dir(path):
 # path_outputs = get_path_output()
 
 
-paths_checkpoints = check_and_create_dir("/models/checkpoints/")
-paths_loras = check_and_create_dir("/models/loras/")
-path_embeddings = check_and_create_dir("/models/embeddings/")
-path_vae_approx = check_and_create_dir("/models/vae_approx/")
-path_vae = check_and_create_dir("/models/vae/")
-path_upscale_models = check_and_create_dir("/models/upscale_models/")
-path_inpaint = check_and_create_dir("/models/inpaint/")
-path_controlnet = check_and_create_dir("/models/controlnet/")
-path_clip_vision = check_and_create_dir("/models/clip_vision/")
-path_fooocus_expansion = check_and_create_dir("/models/prompt_expansion/fooocus_expansion")
-path_wildcards = check_and_create_dir("/models/wildcards/")
-path_safety_checker = check_and_create_dir("/models/safety_checker/")
-path_outputs = check_and_create_dir("/models/outputs/")
+paths_checkpoints = check_and_create_dir("/volumes/fooocus_model_cache/checkpoints/")
+paths_loras = check_and_create_dir("/volumes/fooocus_model_cache/loras/")
+path_embeddings = check_and_create_dir("/volumes/fooocus_model_cache/embeddings/")
+path_vae_approx = check_and_create_dir("/volumes/fooocus_model_cache/vae_approx/")
+path_vae = check_and_create_dir("/volumes/fooocus_model_cache/vae/")
+path_upscale_models = check_and_create_dir("/volumes/fooocus_model_cache/upscale_models/")
+path_inpaint = check_and_create_dir("/volumes/fooocus_model_cache/inpaint/")
+path_controlnet = check_and_create_dir("/volumes/fooocus_model_cache/controlnet/")
+path_clip_vision = check_and_create_dir("/volumes/fooocus_model_cache/clip_vision/")
+path_fooocus_expansion = check_and_create_dir("/volumes/fooocus_model_cache/prompt_expansion/fooocus_expansion")
+path_wildcards = check_and_create_dir("/volumes/fooocus_model_cache/wildcards/")
+path_safety_checker = check_and_create_dir("/volumes/fooocus_model_cache/safety_checker/")
+path_outputs = check_and_create_dir("/volumes/fooocus_model_cache/outputs/")
 
 
 def get_config_item_or_set_default(key, default_value, validator, disable_empty_as_none=False, expected_type=None):
