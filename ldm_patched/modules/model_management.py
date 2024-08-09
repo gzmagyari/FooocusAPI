@@ -518,13 +518,13 @@ def unet_manual_cast(weight_dtype, inference_device):
         return torch.float32
 
 def text_encoder_offload_device():
-    if args.always_gpu:
+    if args.always_gpu or True:
         return get_torch_device()
     else:
         return torch.device("cpu")
 
 def text_encoder_device():
-    if args.always_gpu:
+    if args.always_gpu or True:
         return get_torch_device()
     elif vram_state == VRAMState.HIGH_VRAM or vram_state == VRAMState.NORMAL_VRAM:
         if is_intel_xpu():
@@ -555,7 +555,7 @@ def text_encoder_dtype(device=None):
         return torch.float32
 
 def intermediate_device():
-    if args.always_gpu:
+    if args.always_gpu or True:
         return get_torch_device()
     else:
         return torch.device("cpu")
@@ -566,7 +566,7 @@ def vae_device():
     return get_torch_device()
 
 def vae_offload_device():
-    if args.always_gpu:
+    if args.always_gpu or True:
         return get_torch_device()
     else:
         return torch.device("cpu")

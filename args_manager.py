@@ -58,14 +58,14 @@ except SystemExit:
     args_parser.args = args_parser.parser.parse_args([])
     
 # (Disable by default because of issues like https://github.com/lllyasviel/Fooocus/issues/724)
-args_parser.args.always_offload_from_vram = not args_parser.args.disable_offload_from_vram
+args_parser.args.always_offload_from_vram = not args_parser.args.disable_offload_from_vram and False
 
-if args_parser.args.disable_analytics:
+if args_parser.args.disable_analytics or True:
     import os
 
     os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
-if args_parser.args.disable_in_browser:
+if args_parser.args.disable_in_browser or True:
     args_parser.args.in_browser = False
 
 args = args_parser.args
