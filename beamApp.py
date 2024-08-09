@@ -9,12 +9,13 @@ from classes.FooocusModel import FooocusModel
 from apis.models.requests import CommonRequest
 from apis.utils.img_utils import base64_to_image
 from makeModelDictionary import makeModelDictionary
+import os
+import ssl
+import sys
 import shutil
 
 def initializeApp():
-    import os
-    import ssl
-    import sys
+
     #from build_launcher import build_launcher
     #from modules import config
 
