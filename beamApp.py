@@ -1,3 +1,17 @@
+import sys
+
+sys.argv = [
+    'beamApp.py',
+    '--output-path', '/models/outputs',
+    '--temp-path', '/models/temp',
+    '--cache-path', '/models/cache',
+    '--disable-offload-from-vram',
+    '--disable-image-log',
+    '--always-gpu',
+    '--always-high-vram'
+]
+
+
 import os
 import asyncio
 import json
@@ -39,6 +53,8 @@ def initializeApp():
         args = ini_args()
     except:
         pass
+
+    print("Args:", args)
 
     if args.gpu_device_id is not None:
         os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)

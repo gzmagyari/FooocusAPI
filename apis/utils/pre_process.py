@@ -17,7 +17,8 @@ from apis.utils.file_utils import save_base64, to_http
 from apis.utils.img_utils import read_input_image
 from apis.models.base import Lora, ImagePrompt
 
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+#ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = "/models"
 INPUT_PATH = os.path.join(ROOT_DIR, '..', 'inputs')
 
 
