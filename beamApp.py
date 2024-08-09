@@ -62,7 +62,7 @@ def initializeApp():
     return load_model()
 
 # Path to cache model weights
-MODEL_PATH = "/models"
+MODEL_PATH = "./models"
 
 def load_file_from_url(
         url: str,
