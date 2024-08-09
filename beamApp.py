@@ -177,7 +177,7 @@ volume = Volume(name="fooocus_model_cache", mount_path="./fooocus_model_cache")
             "apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0"
         ]
     ),
-    gpu="A100",
+    gpu="RTX4090",
     cpu=16,
     memory="32Gi",
 )
