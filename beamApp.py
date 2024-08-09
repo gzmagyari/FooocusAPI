@@ -12,6 +12,7 @@ from makeModelDictionary import makeModelDictionary
 import os
 import ssl
 import sys
+import uuid
 import shutil
 
 root = os.path.dirname(os.path.abspath(__file__))
@@ -63,6 +64,8 @@ def initializeApp():
 
 # Path to cache model weights
 MODEL_PATH = "/volumes/fooocus_model_cache"
+OUTPUT_DIR = os.path.join(MODEL_PATH, "outputs")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def load_file_from_url(
         url: str,
@@ -195,11 +198,20 @@ async def generate_image(context, prompt: str, negative_prompt: str = None, widt
     # Process the result
     if "base64_result" in result:
         base64str = result["base64_result"][0]
-        image = base64_to_image(base64str, "./result.png")
+        
+        # Generate a random file name
+        random_filename = f"{uuid.uuid4()}.png"
+        output_path = os.path.join(OUTPUT_DIR, random_filename)
+        
+        # Convert base64 string to image and save it
+        image = base64_to_image(base64str, output_path)
         output = Output.from_pil_image(image)
         output.save()
+
+        # Generate the public URL for the saved image
         url = output.public_url(expires=400)
         print(url)
+        
         return {"image": url}
     else:
         return {"error": "Image generation failed"}
