@@ -177,9 +177,9 @@ volume = Volume(name="fooocus_model_cache", mount_path="./fooocus_model_cache")
             "apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0"
         ]
     ),
-    gpu="A10G",
-    cpu=2,
-    memory="16Gi",
+    gpu="A100",
+    cpu=16,
+    memory="32Gi",
 )
 async def generate_image(context, prompt: str, negative_prompt: str = None, width: int = 512, height: int = 512, performance_selection: str = "Quality"):
     # Access the initialized model from the context
