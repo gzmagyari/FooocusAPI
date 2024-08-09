@@ -29,9 +29,9 @@ def initializeApp():
     # ]
 
     # Ensure the correct root directory
-    root = os.path.dirname(os.path.abspath(__file__))
-    sys.path.insert(0, root)  # Insert root at the beginning of sys.path
-    os.chdir(root)
+    # root = os.path.dirname(os.path.abspath(__file__))
+    # sys.path.insert(0, root)  # Insert root at the beginning of sys.path
+    # os.chdir(root)
 
     # Set necessary environment variables
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
