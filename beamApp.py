@@ -60,7 +60,7 @@ def initializeApp():
 
     #os.environ['GRADIO_TEMP_DIR'] = config.temp_path
 
-    return load_model()
+    #return load_model()
 
 # Path to cache model weights
 MODEL_PATH = "/models"
@@ -137,12 +137,14 @@ def load_model():
     asyncio.run(model.startInBackground())
     return model
 
+initializeApp()
+
 volume = Volume(name="fooocus_model_cache", mount_path=MODEL_PATH)
 
 @endpoint(
     name="fooocus-ai-service",
     volumes=[volume],
-    on_start=initializeApp,
+    on_start=load_model,
     image=Image(
         python_version="python3.10",
         python_packages=[
@@ -213,7 +215,7 @@ if __name__ == "__main__":
     if env.is_remote():
         generate_image.serve()
     else:
-        model = initializeApp()
+        model = load_model()
         request = CommonRequest(
             prompt="a cute cat, crisp clear, 4k, vivid colors, high resolution",
             negative_prompt="blurry, low resolution, pixelated",
