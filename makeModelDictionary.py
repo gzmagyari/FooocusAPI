@@ -1,34 +1,19 @@
 import os
 
-def makeModelDictionary(modelPath):
-    checkPointPath = os.path.join(modelPath, "checkpoints")
-    loraPath = os.path.join(modelPath, "loras")
-    inpaintPath = os.path.join(modelPath, "inpaint")
-    controlNetPath = os.path.join(modelPath, "controlnet")
-    upscaleModelsPath = os.path.join(modelPath, "upscale_models")
-    clipVisionPath = os.path.join(modelPath, "clip_vision")
-    vaeApproxPath = os.path.join(modelPath, "vae_approx")
-    promptExpansionPath = os.path.join(modelPath, "prompt_expansion/fooocus_expansion")
-    safetyCheckerPath = os.path.join(modelPath, "safety_checker")
-
-    checkPointPath = "/volumes/fooocus_model_cache/checkpoints"
-    # loraPath = "./models/loras"
-    # inpaintPath = "./models/inpaint"
-    # controlNetPath = "./models/controlnet"
-    # upscaleModelsPath = "./models/upscale_models"
-    # clipVisionPath = "./models/clip_vision"
-    # vaeApproxPath = "./models/vae_approx"
-    # promptExpansionPath = "./models/prompt_expansion/fooocus_expansion"
-    # safetyCheckerPath = "./models/safety_checker"
-
-    loraPath = os.path.join(os.path.dirname(__file__), "models/loras")
-    inpaintPath = os.path.join(os.path.dirname(__file__), "models/inpaint")
-    controlNetPath = os.path.join(os.path.dirname(__file__), "models/controlnet")
-    upscaleModelsPath = os.path.join(os.path.dirname(__file__), "models/upscale_models")
-    clipVisionPath = os.path.join(os.path.dirname(__file__), "models/clip_vision")
-    vaeApproxPath = os.path.join(os.path.dirname(__file__), "models/vae_approx")
-    promptExpansionPath = os.path.join(os.path.dirname(__file__), "models/prompt_expansion/fooocus_expansion")
-    safetyCheckerPath = os.path.join(os.path.dirname(__file__), "models/safety_checker")
+def makeModelDictionary(volumeModelPath, localModelPath, useVolumeForCheckPoints=False):
+    if useVolumeForCheckPoints:
+        checkPointPath = os.path.join(volumeModelPath, "checkpoints")
+    else:
+        checkPointPath = os.path.join(localModelPath, "checkpoints")
+    
+    loraPath = os.path.join(localModelPath, "loras")
+    inpaintPath = os.path.join(localModelPath, "inpaint")
+    controlNetPath = os.path.join(localModelPath, "controlnet")
+    upscaleModelsPath = os.path.join(localModelPath, "upscale_models")
+    clipVisionPath = os.path.join(localModelPath, "clip_vision")
+    vaeApproxPath = os.path.join(localModelPath, "vae_approx")
+    promptExpansionPath = os.path.join(localModelPath, "prompt_expansion/fooocus_expansion")
+    safetyCheckerPath = os.path.join(localModelPath, "safety_checker")
 
     return {
         checkPointPath: [

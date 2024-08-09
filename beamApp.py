@@ -9,6 +9,7 @@ from classes.FooocusModel import FooocusModel
 from apis.models.requests import CommonRequest
 from apis.utils.img_utils import base64_to_image
 from makeModelDictionary import makeModelDictionary
+import constants
 import os
 import ssl
 import sys
@@ -73,9 +74,6 @@ def initializeApp():
     return load_model()
 
 # Path to cache model weights
-MODEL_PATH = "/volumes/fooocus_model_cache"
-OUTPUT_DIR = os.path.join(MODEL_PATH, "outputs")
-os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def load_file_from_url(
         url: str,
@@ -101,7 +99,7 @@ def load_file_from_url(
         download_url_to_file(url, cached_file, progress=progress)
     return cached_file
 
-def copy_models_directory(source="./models", destination="/volumes/fooocus_model_cache"):
+def copy_models_directory(source, destination):
     # Check if the source directory exists
     if not os.path.exists(source):
         raise FileNotFoundError(f"The source directory {source} does not exist.")
@@ -139,7 +137,7 @@ def download_files(file_dict: Dict[str, List[str]]):
                 load_file_from_url(url, model_dir=directory)
 
 def load_model():
-    file_dict = makeModelDictionary(MODEL_PATH)
+    file_dict = makeModelDictionary(constants.VOLUME_MODEL_PATH, constants.LOCAL_MODEL_PATH, constants.USE_VOLUME_FOR_CHECKPOINTS)
     #copy_models_directory(source="./models", destination=MODEL_PATH)
     download_files(file_dict)
     model = FooocusModel()
@@ -161,31 +159,32 @@ volume = Volume(name="fooocus_model_cache", mount_path="./fooocus_model_cache")
             "aiofiles",
             "uvicorn",
             "Pillow==9.4.0",
-            "torchsde==0.2.6",
-            "einops==0.4.1",
-            "transformers==4.30.2",
-            "safetensors==0.3.1",
-            "accelerate==0.21.0",
-            "pyyaml==6.0",
-            "scipy==1.9.3",
-            "tqdm==4.64.1",
-            "psutil==5.9.5",
-            "pytorch_lightning==1.9.4",
-            "omegaconf==2.2.3",
-            "gradio==3.41.2",
-            "pygit2==1.12.2",
-            "opencv-contrib-python==4.8.0.74",
-            "httpx==0.24.1",
-            "onnxruntime==1.16.3",
-            "timm==0.9.2",
-            "sse_starlette",
-            "sqlalchemy",
-            "httpx"
+            # "torchsde==0.2.6",
+            # "einops==0.4.1",
+            # "transformers==4.30.2",
+            # "safetensors==0.3.1",
+            # "accelerate==0.21.0",
+            # "pyyaml==6.0",
+            # "scipy==1.9.3",
+            # "tqdm==4.64.1",
+            # "psutil==5.9.5",
+            # "pytorch_lightning==1.9.4",
+            # "omegaconf==2.2.3",
+            # "gradio==3.41.2",
+            # "pygit2==1.12.2",
+            # "opencv-contrib-python==4.8.0.74",
+            # "httpx==0.24.1",
+            # "onnxruntime==1.16.3",
+            # "timm==0.9.2",
+            # "sse_starlette",
+            # "sqlalchemy",
+            # "httpx"
         ],
-        base_image="docker.io/nvidia/cuda:12.3.1-runtime-ubuntu20.04",
+        base_image="docker.io/gzmagyari/fooocus-api-pb:optimized",
         commands=[
+            "true"
             # Install libGL and other dependencies
-            "apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0"
+            #"apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0"
         ]
     ),
     gpu="A10G",
@@ -212,7 +211,7 @@ async def generate_image(context, prompt: str, negative_prompt: str = None, widt
         
         # Generate a random file name
         random_filename = f"{uuid.uuid4()}.png"
-        output_path = os.path.join(OUTPUT_DIR, random_filename)
+        output_path = os.path.join(constants.VOLUME_OUTPUT_DIR, random_filename)
         
         # Convert base64 string to image and save it
         image = base64_to_image(base64str, output_path)
