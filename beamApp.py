@@ -1,16 +1,4 @@
 import sys
-
-sys.argv = [
-    'beamApp.py',
-    '--output-path', '/models/outputs',
-    '--temp-path', '/models/temp',
-    '--cache-path', '/models/cache',
-    '--disable-offload-from-vram',
-    '--disable-image-log',
-    '--always-high-vram'
-]
-
-
 import os
 import asyncio
 import json
@@ -26,44 +14,52 @@ import shutil
 def initializeApp():
     import os
     import ssl
+    import sys
     from build_launcher import build_launcher
     from modules import config
-    import os
-    import sys
 
-    print('[System ARGV] ' + str(sys.argv))
+    sys.argv = [
+        'beamApp.py',
+        '--output-path', '/models/outputs',
+        '--temp-path', '/models/temp',
+        '--cache-path', '/models/cache',
+        '--disable-offload-from-vram',
+        '--disable-image-log',
+        '--always-high-vram'
+    ]
 
+    # Ensure the correct root directory
     root = os.path.dirname(os.path.abspath(__file__))
-    sys.path.append(root)
+    sys.path.insert(0, root)  # Insert root at the beginning of sys.path
     os.chdir(root)
 
+    # Set necessary environment variables
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
-    if "GRADIO_SERVER_PORT" not in os.environ:
-        os.environ["GRADIO_SERVER_PORT"] = "7865"
-
+    os.environ.setdefault("GRADIO_SERVER_PORT", "7865")
+    
     ssl._create_default_https_context = ssl._create_unverified_context
 
     def ini_args():
         from args_manager import args
         return args
 
+    # Build the launcher
     build_launcher()
+
     try:
         args = ini_args()
-    except:
-        pass
+    except Exception as e:
+        print(f"Error initializing args: {e}")
+        args = None
 
-    print("Args:", args)
-
-    if args.gpu_device_id is not None:
+    if args and args.gpu_device_id is not None:
         os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
         print("Set device to:", args.gpu_device_id)
 
     os.environ['GRADIO_TEMP_DIR'] = config.temp_path
 
     return load_model()
-    
 
 # Path to cache model weights
 MODEL_PATH = "/models"
