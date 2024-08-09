@@ -12,7 +12,7 @@ from modules.flags import Performance, controlnet_image_count
 from modules import constants, config
 from modules.model_loader import load_file_from_url
 
-import constants
+import fooocus_constants
 from apis.models.requests import CommonRequest
 from apis.utils.file_utils import save_base64, to_http
 from apis.utils.img_utils import read_input_image
@@ -20,7 +20,7 @@ from apis.models.base import Lora, ImagePrompt
 
 #ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-INPUT_PATH = constants.VOLUME_INPUT_DIR
+INPUT_PATH = fooocus_constants.VOLUME_INPUT_DIR
 
 def refresh_seed(seed_string: int | str | None) -> int:
     """

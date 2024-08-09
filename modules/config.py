@@ -8,7 +8,7 @@ import tempfile
 import modules.flags
 import modules.sdxl_styles
 
-import constants
+import fooocus_constants
 from modules.model_loader import load_file_from_url
 from modules.extra_utils import makedirs_with_log, get_files_from_folder, try_eval_env_var
 from modules.flags import OutputFormat, Performance, MetadataScheme
@@ -209,24 +209,24 @@ def check_and_create_dir(path):
 # path_outputs = get_path_output()
 
 
-if constants.USE_VOLUME_FOR_CHECKPOINTS:
-    paths_checkpoints = check_and_create_dir(constants.VOLUME_MODEL_PATH, 'checkpoints/')
+if fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS:
+    paths_checkpoints = check_and_create_dir(fooocus_constants.VOLUME_MODEL_PATH, 'checkpoints/')
     print(f'Using volume for checkpoints: {paths_checkpoints}')
 else:
-    paths_checkpoints = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'checkpoints/'))
+    paths_checkpoints = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'checkpoints/'))
     print(f'Using local path for checkpoints: {paths_checkpoints}')
-paths_loras = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'loras/'))
-path_embeddings = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'embeddings/'))
-path_vae_approx = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'vae_approx/'))
-path_vae = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'vae/'))
-path_upscale_models = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'upscale_models/'))
-path_inpaint = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'inpaint/'))
-path_controlnet = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'controlnet/'))
-path_clip_vision = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'clip_vision/'))
-path_fooocus_expansion = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'prompt_expansion/fooocus_expansion'))
-path_wildcards = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'wildcards/'))
-path_safety_checker = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'safety_checker/'))
-path_outputs = check_and_create_dir(constants.VOLUME_OUTPUT_DIR)
+paths_loras = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'loras/'))
+path_embeddings = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'embeddings/'))
+path_vae_approx = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'vae_approx/'))
+path_vae = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'vae/'))
+path_upscale_models = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'upscale_models/'))
+path_inpaint = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'inpaint/'))
+path_controlnet = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'controlnet/'))
+path_clip_vision = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'clip_vision/'))
+path_fooocus_expansion = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'prompt_expansion/fooocus_expansion'))
+path_wildcards = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'wildcards/'))
+path_safety_checker = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'safety_checker/'))
+path_outputs = check_and_create_dir(fooocus_constants.VOLUME_OUTPUT_DIR)
 
 
 def get_config_item_or_set_default(key, default_value, validator, disable_empty_as_none=False, expected_type=None):

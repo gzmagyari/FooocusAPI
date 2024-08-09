@@ -9,7 +9,7 @@ from classes.FooocusModel import FooocusModel
 from apis.models.requests import CommonRequest
 from apis.utils.img_utils import base64_to_image
 from makeModelDictionary import makeModelDictionary
-import constants
+import fooocus_constants
 import os
 import ssl
 import sys
@@ -137,7 +137,7 @@ def download_files(file_dict: Dict[str, List[str]]):
                 load_file_from_url(url, model_dir=directory)
 
 def load_model():
-    file_dict = makeModelDictionary(constants.VOLUME_MODEL_PATH, constants.LOCAL_MODEL_PATH, constants.USE_VOLUME_FOR_CHECKPOINTS)
+    file_dict = makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
     #copy_models_directory(source="./models", destination=MODEL_PATH)
     download_files(file_dict)
     model = FooocusModel()
@@ -211,7 +211,7 @@ async def generate_image(context, prompt: str, negative_prompt: str = None, widt
         
         # Generate a random file name
         random_filename = f"{uuid.uuid4()}.png"
-        output_path = os.path.join(constants.VOLUME_OUTPUT_DIR, random_filename)
+        output_path = os.path.join(fooocus_constants.VOLUME_OUTPUT_DIR, random_filename)
         
         # Convert base64 string to image and save it
         image = base64_to_image(base64str, output_path)
