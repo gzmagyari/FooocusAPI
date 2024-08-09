@@ -1,36 +1,65 @@
+import sys
 import os
-import ssl
-import json
 import asyncio
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import json
 from beam import endpoint, Image, Volume, env, Output
 from urllib.parse import urlparse
 from typing import Optional, Dict, List
-
-from build_launcher import build_launcher
-from modules.launch_util import delete_folder_content
-from apis.models.requests import CommonRequest
-from modules.config import path_outputs
-from apis.utils.img_utils import base64_to_image
-from modules import config
 from classes.FooocusModel import FooocusModel
+from apis.models.requests import CommonRequest
+from apis.utils.img_utils import base64_to_image
 from makeModelDictionary import makeModelDictionary
 import os
+import ssl
 import sys
 import shutil
 
-print('[System ARGV] ' + str(sys.argv))
+root = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(root)
+os.chdir(root)
 
-os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
-if "GRADIO_SERVER_PORT" not in os.environ:
-    os.environ["GRADIO_SERVER_PORT"] = "7865"
+sys.argv = [
+    'beamApp.py',
+    '--output-path', '/models/outputs',
+    '--temp-path', '/models/temp',
+    '--cache-path', '/models/cache',
+    '--disable-offload-from-vram',
+    '--disable-image-log',
+    '--always-high-vram'
+]
 
-ssl._create_default_https_context = ssl._create_unverified_context
+def initializeApp():
 
+    from build_launcher import build_launcher
+    from modules import config
+
+    # Set necessary environment variables
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+    os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
+    os.environ.setdefault("GRADIO_SERVER_PORT", "7865")
+    
+    ssl._create_default_https_context = ssl._create_unverified_context
+
+    def ini_args():
+        from args_manager import args
+        return args
+
+    # Build the launcher
+    build_launcher()
+
+    try:
+        args = ini_args()
+    except Exception as e:
+        print(f"Error initializing args: {e}")
+        args = None
+
+    if args and args.gpu_device_id is not None:
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
+        print("Set device to:", args.gpu_device_id)
+
+    os.environ['GRADIO_TEMP_DIR'] = config.temp_path
+
+    return load_model()
 
 # Path to cache model weights
 MODEL_PATH = "/models"
@@ -107,14 +136,12 @@ def load_model():
     asyncio.run(model.startInBackground())
     return model
 
-#initializeApp()
-
 volume = Volume(name="fooocus_model_cache", mount_path=MODEL_PATH)
 
 @endpoint(
     name="fooocus-ai-service",
     volumes=[volume],
-    on_start=load_model,
+    on_start=initializeApp,
     image=Image(
         python_version="python3.10",
         python_packages=[
@@ -185,7 +212,7 @@ if __name__ == "__main__":
     if env.is_remote():
         generate_image.serve()
     else:
-        model = load_model()
+        model = initializeApp()
         request = CommonRequest(
             prompt="a cute cat, crisp clear, 4k, vivid colors, high resolution",
             negative_prompt="blurry, low resolution, pixelated",
