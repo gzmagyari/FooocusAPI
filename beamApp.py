@@ -142,6 +142,7 @@ volume = Volume(name="fooocus_model_cache", mount_path="./fooocus_model_cache")
     name="fooocus-ai-service",
     volumes=[volume],
     on_start=initializeApp,
+    keep_warm_seconds=60,
     image=Image(
         python_version="python3.10",
         python_packages=[
@@ -177,8 +178,8 @@ volume = Volume(name="fooocus_model_cache", mount_path="./fooocus_model_cache")
             "apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0"
         ]
     ),
-    gpu="A100-40",
-    cpu=4,
+    gpu="A10G",
+    cpu=8,
     memory="32Gi",
 )
 async def generate_image(context, prompt: str, negative_prompt: str = None, width: int = 512, height: int = 512, performance_selection: str = "Quality"):
