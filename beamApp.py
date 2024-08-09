@@ -18,15 +18,15 @@ def initializeApp():
     from build_launcher import build_launcher
     from modules import config
 
-    sys.argv = [
-        'beamApp.py',
-        '--output-path', '/models/outputs',
-        '--temp-path', '/models/temp',
-        '--cache-path', '/models/cache',
-        '--disable-offload-from-vram',
-        '--disable-image-log',
-        '--always-high-vram'
-    ]
+    # sys.argv = [
+    #     'beamApp.py',
+    #     '--output-path', '/models/outputs',
+    #     '--temp-path', '/models/temp',
+    #     '--cache-path', '/models/cache',
+    #     '--disable-offload-from-vram',
+    #     '--disable-image-log',
+    #     '--always-high-vram'
+    # ]
 
     # Ensure the correct root directory
     root = os.path.dirname(os.path.abspath(__file__))
