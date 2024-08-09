@@ -13,7 +13,6 @@ import os
 import ssl
 import sys
 import uuid
-import time
 import shutil
 
 root = os.path.dirname(os.path.abspath(__file__))
@@ -76,7 +75,6 @@ def initializeApp():
 # Path to cache model weights
 MODEL_PATH = "/volumes/fooocus_model_cache"
 OUTPUT_DIR = os.path.join(MODEL_PATH, "outputs")
-LOCAL_DIR = "./outputs"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def load_file_from_url(
@@ -142,7 +140,7 @@ def download_files(file_dict: Dict[str, List[str]]):
 
 def load_model():
     file_dict = makeModelDictionary(MODEL_PATH)
-    copy_models_directory(source="./models", destination=MODEL_PATH)
+    #copy_models_directory(source="./models", destination=MODEL_PATH)
     download_files(file_dict)
     model = FooocusModel()
     asyncio.run(model.startInBackground())
@@ -214,31 +212,21 @@ async def generate_image(context, prompt: str, negative_prompt: str = None, widt
         
         # Generate a random file name
         random_filename = f"{uuid.uuid4()}.png"
-        output_path_volume = os.path.join(OUTPUT_DIR, random_filename)
-        output_path_local = os.path.join(LOCAL_DIR, random_filename)
+        output_path = os.path.join(OUTPUT_DIR, random_filename)
         
-        # Measure time for saving to volume
-        start_time_volume = time.time()
-        image = base64_to_image(base64str, output_path_volume)
-        volume_time = time.time() - start_time_volume
-        print(f"Time taken to save to volume: {volume_time:.4f} seconds")
-
-        # Measure time for saving to local directory
-        start_time_local = time.time()
-        image = base64_to_image(base64str, output_path_local)
-        local_time = time.time() - start_time_local
-        print(f"Time taken to save to local directory: {local_time:.4f} seconds")
-        
+        # Convert base64 string to image and save it
+        image = base64_to_image(base64str, output_path)
         output = Output.from_pil_image(image)
         output.save()
 
-        # Generate the public URL for the saved image in the volume
+        # Generate the public URL for the saved image
         url = output.public_url(expires=400)
         print(url)
         
         return {"image": url}
     else:
         return {"error": "Image generation failed"}
+
 if __name__ == "__main__":
     if env.is_remote():
         generate_image.serve()

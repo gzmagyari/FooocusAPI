@@ -21,17 +21,6 @@
   "checkpoint_downloads": {
     "juggernautXL_v8Rundiffusion.safetensors": "https://huggingface.co/lllyasviel/fav_models/resolve/main/fav/juggernautXL_v8Rundiffusion.safetensors"
   },
-  "path_checkpoints": "/volumes/fooocus_model_cache/checkpoints",
-  "path_loras": "/volumes/fooocus_model_cache/loras",
-  "path_embeddings": "/volumes/fooocus_model_cache/embeddings",
-  "path_vae_approx": "/volumes/fooocus_model_cache/vae_approx",
-  "path_vae": "/volumes/fooocus_model_cache/vae",
-  "path_upscale_models": "/volumes/fooocus_model_cache/upscale_models",
-  "path_inpaint": "/volumes/fooocus_model_cache/inpaint",
-  "path_controlnet": "/volumes/fooocus_model_cache/controlnet",
-  "path_clip_vision": "/volumes/fooocus_model_cache/clip_vision",
-  "path_fooocus_expansion": "/volumes/fooocus_model_cache/prompt_expansion/fooocus_expansion",
-  "path_safety_checker": "/volumes/fooocus_model_cache/safety_checker",
   "embeddings_downloads": {},
   "lora_downloads": {
     "sd_xl_offset_example-lora_1.0.safetensors": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors"

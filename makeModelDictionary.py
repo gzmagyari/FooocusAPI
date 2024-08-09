@@ -11,15 +11,24 @@ def makeModelDictionary(modelPath):
     promptExpansionPath = os.path.join(modelPath, "prompt_expansion/fooocus_expansion")
     safetyCheckerPath = os.path.join(modelPath, "safety_checker")
 
-    # checkPointPath = "/models/checkpoints"
-    # loraPath = "/models/loras"
-    # inpaintPath = "/models/inpaint"
-    # controlNetPath = "/models/controlnet"
-    # upscaleModelsPath = "/models/upscale_models"
-    # clipVisionPath = "/models/clip_vision"
-    # vaeApproxPath = "/models/vae_approx"
-    # promptExpansionPath = "/models/prompt_expansion/fooocus_expansion"
-    # safetyCheckerPath = "/models/safety_checker"
+    checkPointPath = "/volumes/fooocus_model_cache/checkpoints"
+    # loraPath = "./models/loras"
+    # inpaintPath = "./models/inpaint"
+    # controlNetPath = "./models/controlnet"
+    # upscaleModelsPath = "./models/upscale_models"
+    # clipVisionPath = "./models/clip_vision"
+    # vaeApproxPath = "./models/vae_approx"
+    # promptExpansionPath = "./models/prompt_expansion/fooocus_expansion"
+    # safetyCheckerPath = "./models/safety_checker"
+
+    loraPath = os.path.join(os.path.dirname(__file__), "models/loras")
+    inpaintPath = os.path.join(os.path.dirname(__file__), "models/inpaint")
+    controlNetPath = os.path.join(os.path.dirname(__file__), "models/controlnet")
+    upscaleModelsPath = os.path.join(os.path.dirname(__file__), "models/upscale_models")
+    clipVisionPath = os.path.join(os.path.dirname(__file__), "models/clip_vision")
+    vaeApproxPath = os.path.join(os.path.dirname(__file__), "models/vae_approx")
+    promptExpansionPath = os.path.join(os.path.dirname(__file__), "models/prompt_expansion/fooocus_expansion")
+    safetyCheckerPath = os.path.join(os.path.dirname(__file__), "models/safety_checker")
 
     return {
         checkPointPath: [
