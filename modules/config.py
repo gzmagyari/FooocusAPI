@@ -211,8 +211,10 @@ def check_and_create_dir(path):
 
 if constants.USE_VOLUME_FOR_CHECKPOINTS:
     paths_checkpoints = check_and_create_dir(constants.VOLUME_MODEL_PATH, 'checkpoints/')
+    print(f'Using volume for checkpoints: {paths_checkpoints}')
 else:
     paths_checkpoints = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'checkpoints/'))
+    print(f'Using local path for checkpoints: {paths_checkpoints}')
 paths_loras = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'loras/'))
 path_embeddings = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'embeddings/'))
 path_vae_approx = check_and_create_dir(os.path.join(constants.LOCAL_MODEL_PATH, 'vae_approx/'))

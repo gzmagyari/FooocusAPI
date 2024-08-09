@@ -3,8 +3,10 @@ import os
 def makeModelDictionary(volumeModelPath, localModelPath, useVolumeForCheckPoints=False):
     if useVolumeForCheckPoints:
         checkPointPath = os.path.join(volumeModelPath, "checkpoints")
+        print(f"using volume for checkpoint downloads: {checkPointPath}")
     else:
         checkPointPath = os.path.join(localModelPath, "checkpoints")
+        print(f"using local path for checkpoint downloads: {checkPointPath}")
     
     loraPath = os.path.join(localModelPath, "loras")
     inpaintPath = os.path.join(localModelPath, "inpaint")
