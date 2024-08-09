@@ -157,6 +157,8 @@ def get_dir_or_set_default(key, default_value, as_array=False, make_directory=Fa
     else:
         v = config_dict.get(key, None)
 
+    print(f'Loading config key: {key} = {v}')
+
     if isinstance(v, str):
         if make_directory:
             makedirs_with_log(v)
