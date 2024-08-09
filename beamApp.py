@@ -92,7 +92,6 @@ def load_file_from_url(
         download_url_to_file(url, cached_file, progress=progress)
     return cached_file
 
-
 def copy_models_directory(source="./models", destination="/models"):
     # Check if the source directory exists
     if not os.path.exists(source):
@@ -109,11 +108,20 @@ def copy_models_directory(source="./models", destination="/models"):
         
         # Check if it is a file or directory
         if os.path.isdir(src_path):
-            shutil.copytree(src_path, dest_path)
+            try:
+                shutil.copytree(src_path, dest_path, dirs_exist_ok=True)
+            except FileExistsError:
+                pass  # Ignore if the directory already exists
         else:
-            shutil.copy2(src_path, dest_path)
+            try:
+                shutil.copy2(src_path, dest_path)
+            except shutil.SameFileError:
+                pass  # Ignore if the file already exists
 
     print(f"All files and directories have been copied from {source} to {destination}.")
+
+# Example usage:
+# copy_models_directory("./models", "/models")
 
 def download_files(file_dict: Dict[str, List[str]]):
     for directory, urls in file_dict.items():
