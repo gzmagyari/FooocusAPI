@@ -24,7 +24,7 @@ fastapi_app = FastAPI()
 image = (
     modal.Image.from_registry("nvidia/cuda:12.3.1-runtime-ubuntu20.04", add_python="3.10")
     .apt_install("libgl1-mesa-glx", "libglib2.0-0")
-    .pip_install([
+    .pip_install(
         "uvicorn",
         "fastapi",
         "sqlalchemy",
@@ -48,7 +48,7 @@ image = (
         "onnxruntime==1.16.3",
         "timm==0.9.2",
         "sse_starlette",
-    ])
+    )
 )
 
 # Define the Volume correctly
