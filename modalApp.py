@@ -136,7 +136,7 @@ class FooocusModelManager:
 @fastapi_app.post("/generate_image")
 async def generate_image_endpoint(prompt: str, negative_prompt: str = None, width: int = 512, height: int = 512, performance_selection: str = "Quality"):
     manager = FooocusModelManager()
-    result = await manager.generate_image(prompt, negative_prompt, width, height, performance_selection)
+    result = await manager.generate_image.remote(prompt, negative_prompt, width, height, performance_selection)
     return result
 
 # Modal ASGI app
