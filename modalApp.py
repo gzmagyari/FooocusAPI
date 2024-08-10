@@ -84,7 +84,7 @@ fastapi_app = FastAPI()
 model_volume = modal.Volume.from_name("fooocus_model_cache", create_if_missing=True)
 
 # Define the class to manage the model
-@app.cls(gpu="A100", container_idle_timeout=10, image=image, volumes={"/fooocus_model_cache": model_volume})
+@app.cls(gpu=modal.gpu.A100(count=1), container_idle_timeout=10, image=image, volumes={"/fooocus_model_cache": model_volume})
 class FooocusModelManager:
     
     @modal.enter()
