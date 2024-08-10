@@ -69,12 +69,12 @@ image = (
     .run_commands("pip install fastapi")
 )
 
-with image.imports():
-    from apis.models.requests import CommonRequest
-    from apis.utils.img_utils import base64_to_image
-    from classes.FooocusModel import FooocusModel
-    from makeModelDictionary import makeModelDictionary
-    import fooocus_constants
+# with image.imports():
+#     from apis.models.requests import CommonRequest
+#     from apis.utils.img_utils import base64_to_image
+#     from classes.FooocusModel import FooocusModel
+#     from makeModelDictionary import makeModelDictionary
+#     import fooocus_constants
 
 fastapi_app = FastAPI()
 
@@ -82,11 +82,15 @@ fastapi_app = FastAPI()
 model_volume = modal.Volume.from_name("fooocus_model_cache", create_if_missing=True)
 
 # Define the class to manage the model
-@app.cls(gpu="A10G", container_idle_timeout=60, image=image, volumes={"/fooocus_model_cache": model_volume})
+@app.cls(gpu="A10G", container_idle_timeout=240, image=image, volumes={"/fooocus_model_cache": model_volume})
 class FooocusModelManager:
     
     @modal.enter()
     def initializeApp(self):
+        from classes.FooocusModel import FooocusModel
+        from makeModelDictionary import makeModelDictionary
+        import fooocus_constants
+
         os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
         os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
         os.environ.setdefault("GRADIO_SERVER_PORT", "7865")
@@ -113,7 +117,7 @@ class FooocusModelManager:
         return cached_file
 
     def copy_local_directory(self, source: str, destination: str):
-        """Copy directory from source to destination directory."""
+        """Copy models from source to destination directory."""
         if not os.path.exists(source):
             raise FileNotFoundError(f"The source directory {source} does not exist.")
         if not os.path.exists(destination):
@@ -142,19 +146,26 @@ class FooocusModelManager:
                     self.load_file_from_url(url, model_dir=directory)
 
     @modal.method()
-    async def generate_image(self, request: CommonRequest):
+    async def generate_image(self, prompt: str, negative_prompt: str = None, width: int = 512, height: int = 512, performance_selection: str = "Quality"):
+        from apis.models.requests import CommonRequest
+        from apis.utils.img_utils import base64_to_image
+        import fooocus_constants
+
+        request = CommonRequest(prompt=prompt, negative_prompt=negative_prompt, performance_selection=performance_selection)
         result = await self.model.async_worker(request=request, wait_for_result=True)
         if "base64_result" in result:
             base64str = result["base64_result"][0]
+
             return {"image": base64str}
         else:
             raise HTTPException(status_code=500, detail="Image generation failed")
 
 # FastAPI endpoint
 @fastapi_app.post("/generate_image")
-async def generate_image_endpoint(request: CommonRequest):
+async def generate_image_endpoint(request: dict):
     manager = FooocusModelManager()
-    result = manager.generate_image.remote(request)
+    result = await manager.generate_image(request["prompt"], request["negative_prompt"], request["width"], request["height"], request["performance_selection"])
+    #result = manager.generate_image.remote(prompt, negative_prompt, width, height, performance_selection)
     return result
 
 # Modal ASGI app
