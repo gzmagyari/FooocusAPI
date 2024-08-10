@@ -39,10 +39,9 @@ image = (
         "onnxruntime==1.16.3",
         "timm==0.9.2",
         "sse_starlette",
-    )
+    ).
+    copy_local_dir("./", "/root")
 )
-
-image.copy_local_dir("./", "/root")
 
 with image.imports():
     from apis.models.requests import CommonRequest
