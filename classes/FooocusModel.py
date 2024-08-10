@@ -14,7 +14,7 @@ import copy
 import numpy as np
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
+#import uvicorn
 import torch
 import math
 from fastapi import (
