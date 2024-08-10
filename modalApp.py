@@ -25,10 +25,10 @@ image = (
     modal.Image.from_registry("nvidia/cuda:12.3.1-runtime-ubuntu20.04", add_python="3.10")
     .apt_install("libgl1-mesa-glx", "libglib2.0-0")
     .pip_install([
+        "uvicorn",
         "fastapi",
         "sqlalchemy",
         "aiofiles",
-        "uvicorn",
         "Pillow==9.4.0",
         "torchsde==0.2.6",
         "einops==0.4.1",
