@@ -11,6 +11,8 @@ import shutil
 # Define Modal app
 app = modal.App("fooocus-ai-service")
 
+#deploying with "modal deploy modalAppDocker.py" - note you need to activate the fooocusapi conda environment first
+
 # Define the container image with dependencies
 image = (
     modal.Image.debian_slim(python_version="3.10")
@@ -82,7 +84,7 @@ fastapi_app = FastAPI()
 model_volume = modal.Volume.from_name("fooocus_model_cache", create_if_missing=True)
 
 # Define the class to manage the model
-@app.cls(gpu="A10G", container_idle_timeout=4, image=image, volumes={"/fooocus_model_cache": model_volume})
+@app.cls(gpu="A100", container_idle_timeout=4, image=image, volumes={"/fooocus_model_cache": model_volume})
 class FooocusModelManager:
     
     @modal.enter()
