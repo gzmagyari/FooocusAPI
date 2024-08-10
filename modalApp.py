@@ -82,7 +82,7 @@ fastapi_app = FastAPI()
 model_volume = modal.Volume.from_name("fooocus_model_cache", create_if_missing=True)
 
 # Define the class to manage the model
-@app.cls(gpu="A10G", container_idle_timeout=240, image=image, volumes={"/fooocus_model_cache": model_volume})
+@app.cls(gpu="A10G", container_idle_timeout=4, image=image, volumes={"/fooocus_model_cache": model_volume})
 class FooocusModelManager:
     
     @modal.enter()
@@ -169,7 +169,7 @@ async def generate_image_endpoint(request: dict):
     return result
 
 # Modal ASGI app
-@app.function()
+@app.function(container_idle_timeout=4)
 @modal.asgi_app()
 def fastapi_asgi_app():
     return fastapi_app
