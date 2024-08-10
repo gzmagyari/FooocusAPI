@@ -22,7 +22,7 @@ fastapi_app = FastAPI()
 
 # Define the container image with dependencies
 image = (
-    modal.Image.from_registry("nvidia/cuda:12.3.1-runtime-ubuntu20.04", add_python="3.10")
+    modal.Image.debian_slim(python_version="3.10")
     .apt_install("libgl1-mesa-glx", "libglib2.0-0")
     .pip_install(
         "uvicorn",
