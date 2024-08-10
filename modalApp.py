@@ -139,6 +139,7 @@ async def generate_image_endpoint(prompt: str, negative_prompt: str = None, widt
     return result
 
 # Modal ASGI app
-@app.asgi_app()
+@app.function()
+@modal.asgi_app()
 def fastapi_asgi_app():
     return fastapi_app
