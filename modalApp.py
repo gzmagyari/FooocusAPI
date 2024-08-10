@@ -62,7 +62,6 @@ image = (
     .copy_local_file("./makeModelDictionary.py", "/root/makeModelDictionary.py")
     .copy_local_file("./shared.py", "/root/shared.py")
     .copy_local_file("./webui.py", "/root/webui.py")
-    #uninstalling and reinstalling pydantic
     .run_commands("pip uninstall -y pydantic")
     .run_commands("pip install pydantic")
 )
