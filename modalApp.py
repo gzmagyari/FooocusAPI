@@ -55,6 +55,7 @@ image = (
     .copy_local_dir("./tests", "/root/tests")
     .copy_local_dir("./utils", "/root/utils")
     .copy_local_dir("./wildcards", "/root/wildcards")
+    .copy_local_dir("./models/prompt_expansion", "/root/models/prompt_expansion")
     .copy_local_file("./args_manager.py", "/root/args_manager.py")
     .copy_local_file("./build_launcher.py", "/root/build_launcher.py")
     .copy_local_file("./fooocus_constants.py", "/root/fooocus_constants.py")
