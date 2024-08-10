@@ -62,7 +62,9 @@ image = (
     .copy_local_file("./makeModelDictionary.py", "/root/makeModelDictionary.py")
     .copy_local_file("./shared.py", "/root/shared.py")
     .copy_local_file("./webui.py", "/root/webui.py")
-    #.copy_local_dir("./models/prompt_expansion/fooocus_expansion", "/root/models/prompt_expansion/fooocus_expansion")
+    #uninstalling and reinstalling pydantic
+    .run_commands("pip uninstall -y pydantic")
+    .run_commands("pip install pydantic")
 )
 
 # with image.imports():
@@ -94,6 +96,7 @@ class FooocusModelManager:
         
         file_dict = makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
         self.download_files(file_dict)
+        self.copy_local_directory(os.path.join("./models/prompt_expansion", "prompt_expansion"), os.path.join(fooocus_constants.VOLUME_MODEL_PATH, "prompt_expansion"))
         self.model = FooocusModel()
         asyncio.run(self.model.startInBackground())
 
@@ -111,7 +114,7 @@ class FooocusModelManager:
             download_url_to_file(url, cached_file, progress=progress)
         return cached_file
 
-    def copy_models_directory(self, source: str, destination: str):
+    def copy_local_directory(self, source: str, destination: str):
         """Copy models from source to destination directory."""
         if not os.path.exists(source):
             raise FileNotFoundError(f"The source directory {source} does not exist.")
