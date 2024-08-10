@@ -39,6 +39,7 @@ image = (
         "onnxruntime==1.16.3",
         "timm==0.9.2",
         "sse_starlette",
+        "pydantic"
     ).
     copy_local_dir("./apis", "/root/apis")
     .copy_local_dir("./classes", "/root/classes")
