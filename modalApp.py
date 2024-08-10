@@ -1,24 +1,7 @@
 import modal
-import asyncio
-import os
-import ssl
-import uuid
-from fastapi import FastAPI, HTTPException
-from typing import Optional, Dict, List
-from urllib.parse import urlparse
-
-from classes.FooocusModel import FooocusModel
-from apis.models.requests import CommonRequest
-from apis.utils.img_utils import base64_to_image
-from makeModelDictionary import makeModelDictionary
-import fooocus_constants
-import shutil
 
 # Define Modal app
 app = modal.App("fooocus-ai-service")
-
-# Initialize FastAPI
-fastapi_app = FastAPI()
 
 # Define the container image with dependencies
 image = (
@@ -50,6 +33,24 @@ image = (
         "sse_starlette",
     )
 )
+
+with image.imports():
+    import asyncio
+    import os
+    import ssl
+    import uuid
+    from fastapi import FastAPI, HTTPException
+    from typing import Optional, Dict, List
+    from urllib.parse import urlparse
+
+    from classes.FooocusModel import FooocusModel
+    from apis.models.requests import CommonRequest
+    from apis.utils.img_utils import base64_to_image
+    from makeModelDictionary import makeModelDictionary
+    import fooocus_constants
+    import shutil
+
+fastapi_app = FastAPI()
 
 # Define the Volume correctly
 model_volume = modal.Volume.from_name("fooocus_model_cache", create_if_missing=True)
