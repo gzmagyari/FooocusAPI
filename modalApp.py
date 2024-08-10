@@ -40,7 +40,28 @@ image = (
         "timm==0.9.2",
         "sse_starlette",
     ).
-    copy_local_dir("./", "/root")
+    copy_local_dir("./apis", "/root/apis")
+    .copy_local_dir("./classes", "/root/classes")
+    .copy_local_dir("./css", "/root/css")
+    .copy_local_dir("./docs", "/root/docs")
+    .copy_local_dir("./extras", "/root/extras")
+    .copy_local_dir("./javascript", "/root/javascript")
+    .copy_local_dir("./language", "/root/language")
+    .copy_local_dir("./ldm_patched", "/root/ldm_patched")
+    .copy_local_dir("./modules", "/root/modules")
+    .copy_local_dir("./presets", "/root/presets")
+    .copy_local_dir("./sdxl_styles", "/root/sdxl_styles")
+    .copy_local_dir("./tests", "/root/tests")
+    .copy_local_dir("./utils", "/root/utils")
+    .copy_local_dir("./wildcards", "/root/wildcards")
+    .copy_local_file("./args_manager.py", "/root/args_manager.py")
+    .copy_local_file("./build_launcher.py", "/root/build_launcher.py")
+    .copy_local_file("./fooocus_constants.py", "/root/fooocus_constants.py")
+    .copy_local_file("./fooocus_version.py", "/root/fooocus_version.py")
+    .copy_local_file("./makeModelDictionary.py", "/root/makeModelDictionary.py")
+    .copy_local_file("./shared.py", "/root/shared.py")
+    .copy_local_file("./webui.py", "/root/webui.py")
+    #.copy_local_dir("./models/prompt_expansion/fooocus_expansion", "/root/models/prompt_expansion/fooocus_expansion")
 )
 
 with image.imports():
