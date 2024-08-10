@@ -53,13 +53,19 @@ class FooocusModelManager:
     
     @modal.enter()
     def initializeApp(self):
+        from classes.FooocusModel import FooocusModel
+        from makeModelDictionary import makeModelDictionary
+        import fooocus_constants
+
         os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
         os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
         os.environ.setdefault("GRADIO_SERVER_PORT", "7865")
         ssl._create_default_https_context = ssl._create_unverified_context
         
-        # Initialize the app and load the model
-        self.model = self.load_model()
+        file_dict = makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
+        self.download_files(file_dict)
+        self.model = FooocusModel()
+        asyncio.run(self.model.startInBackground())
 
     def load_file_from_url(self, url: str, *, model_dir: str, progress: bool = True, file_name: Optional[str] = None) -> str:
         """Download a file from `url` into `model_dir`, using the file present if possible."""
@@ -103,17 +109,6 @@ class FooocusModelManager:
                     self.load_file_from_url(url, model_dir=directory, file_name=file_name)
                 else:
                     self.load_file_from_url(url, model_dir=directory)
-
-    def load_model(self):
-        from classes.FooocusModel import FooocusModel
-        from makeModelDictionary import makeModelDictionary
-        import fooocus_constants
-
-        file_dict = makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
-        self.download_files(file_dict)
-        model = FooocusModel()
-        asyncio.run(model.startInBackground())
-        return model
 
     @modal.method()
     async def generate_image(self, prompt: str, negative_prompt: str = None, width: int = 512, height: int = 512, performance_selection: str = "Quality"):
