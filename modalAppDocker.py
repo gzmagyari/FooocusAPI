@@ -79,25 +79,32 @@ image = (
 fastapi_app = FastAPI()
 
 # Define the class to manage the model
-@app.cls(gpu="A100", container_idle_timeout=4, image=image)
+@app.cls(gpu="A100", container_idle_timeout=4, enable_memory_snapshot=True, image=image)
 class FooocusModelManager:
     
     @modal.enter()
     def initializeApp(self):
-        from classes.FooocusModel import FooocusModel
-        from makeModelDictionary import makeModelDictionary
-        import fooocus_constants
-
         os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
         os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
         os.environ.setdefault("GRADIO_SERVER_PORT", "7865")
         ssl._create_default_https_context = ssl._create_unverified_context
         
-        file_dict = makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
+        file_dict = self.getFileDictionary()
         self.download_files(file_dict)
-        #self.copy_local_directory(os.path.join("./models", "prompt_expansion"), os.path.join(fooocus_constants.VOLUME_MODEL_PATH, "prompt_expansion"))
-        self.model = FooocusModel()
+        self.model = self.getModel()
         asyncio.run(self.model.startInBackground())
+
+    @modal.enter(snap=True)
+    def getFileDictionary(self):
+        from makeModelDictionary import makeModelDictionary
+        import fooocus_constants
+
+        return makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
+
+    @modal.enter(snap=True)
+    def getModel(self):
+        from classes.FooocusModel import FooocusModel
+        return FooocusModel()
 
     def load_file_from_url(self, url: str, *, model_dir: str, progress: bool = True, file_name: Optional[str] = None) -> str:
         """Download a file from `url` into `model_dir`, using the file present if possible."""
@@ -165,7 +172,7 @@ async def generate_image_endpoint(request: dict):
     return result
 
 # Modal ASGI app
-@app.function(container_idle_timeout=4)
+@app.function(container_idle_timeout=4, enable_memory_snapshot=True)
 @modal.asgi_app()
 def fastapi_asgi_app():
     return fastapi_app

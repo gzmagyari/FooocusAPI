@@ -2,10 +2,6 @@ import os
 import json
 import math
 import numbers
-import time  # Import time for timing the operations
-
-
-start_time = time.time()
 
 import args_manager
 import tempfile
@@ -17,7 +13,6 @@ from modules.model_loader import load_file_from_url
 from modules.extra_utils import makedirs_with_log, get_files_from_folder, try_eval_env_var
 from modules.flags import OutputFormat, Performance, MetadataScheme
 
-# Start time tracking
 
 def get_config_path(key, default_value):
     env = os.getenv(key)
@@ -34,12 +29,9 @@ config_dict = {}
 always_save_keys = []
 visited_keys = []
 
-print(f'Time elapsed after initialization: {time.time() - start_time:.4f} seconds')
-
 try:
     with open(os.path.abspath(f'./presets/default.json'), "r", encoding="utf-8") as json_file:
         config_dict.update(json.load(json_file))
-    print(f'Time elapsed after loading default preset: {time.time() - start_time:.4f} seconds')
 except Exception as e:
     print(f'Load default preset failed.')
     print(e)
@@ -49,7 +41,6 @@ try:
         with open(config_path, "r", encoding="utf-8") as json_file:
             config_dict.update(json.load(json_file))
             always_save_keys = list(config_dict.keys())
-        print(f'Time elapsed after loading config file: {time.time() - start_time:.4f} seconds')
 except Exception as e:
     print(f'Failed to load config file "{config_path}" . The reason is: {str(e)}')
     print('Please make sure that:')
@@ -57,6 +48,7 @@ except Exception as e:
     print('2. Use "\\\\" instead of "\\" when describing paths.')
     print('3. There is no "," before the last "}".')
     print('4. All key/value formats are correct.')
+
 
 def try_load_deprecated_user_path_config():
     global config_dict
@@ -104,9 +96,9 @@ def try_load_deprecated_user_path_config():
         print(e)
     return
 
+
 try_load_deprecated_user_path_config()
 
-print(f'Time elapsed after loading deprecated user path config: {time.time() - start_time:.4f} seconds')
 
 def get_presets():
     preset_folder = 'presets'
@@ -116,6 +108,7 @@ def get_presets():
         return presets
 
     return presets + [f[:f.index('.json')] for f in os.listdir(preset_folder) if f.endswith('.json')]
+
 
 def try_get_preset_content(preset):
     if isinstance(preset, str):
@@ -137,8 +130,6 @@ available_presets = get_presets()
 preset = args_manager.args.preset
 config_dict.update(try_get_preset_content(preset))
 
-print(f'Time elapsed after loading presets: {time.time() - start_time:.4f} seconds')
-
 def get_path_output() -> str:
     """
     Checking output path argument and overriding default path.
@@ -149,6 +140,7 @@ def get_path_output() -> str:
         print(f'Overriding config value path_outputs with {args_manager.args.output_path}')
         config_dict['path_outputs'] = path_output = args_manager.args.output_path
     return path_output
+
 
 def get_dir_or_set_default(key, default_value, as_array=False, make_directory=False):
     global config_dict, visited_keys, always_save_keys
@@ -201,6 +193,7 @@ def check_and_create_dir(path):
         os.makedirs(path)
     return path
 
+
 # paths_checkpoints = get_dir_or_set_default('path_checkpoints', ['../models/checkpoints/'], True)
 # paths_loras = get_dir_or_set_default('path_loras', ['../models/loras/'], True)
 # path_embeddings = get_dir_or_set_default('path_embeddings', '../models/embeddings/')
@@ -214,6 +207,7 @@ def check_and_create_dir(path):
 # path_wildcards = get_dir_or_set_default('path_wildcards', '../wildcards/')
 # path_safety_checker = get_dir_or_set_default('path_safety_checker', '../models/safety_checker/')
 # path_outputs = get_path_output()
+
 
 if fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS:
     paths_checkpoints = check_and_create_dir(fooocus_constants.VOLUME_MODEL_PATH, 'checkpoints/')
@@ -234,7 +228,6 @@ path_wildcards = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL
 path_safety_checker = check_and_create_dir(os.path.join(fooocus_constants.LOCAL_MODEL_PATH, 'safety_checker/'))
 path_outputs = check_and_create_dir(fooocus_constants.VOLUME_OUTPUT_DIR)
 
-print(f'Time elapsed after directory setup: {time.time() - start_time:.4f} seconds')
 
 def get_config_item_or_set_default(key, default_value, validator, disable_empty_as_none=False, expected_type=None):
     global config_dict, visited_keys
@@ -264,6 +257,7 @@ def get_config_item_or_set_default(key, default_value, validator, disable_empty_
         config_dict[key] = default_value
         return default_value
 
+
 def init_temp_path(path: str | None, default_path: str) -> str:
     if args_manager.args.temp_path:
         path = args_manager.args.temp_path
@@ -281,6 +275,7 @@ def init_temp_path(path: str | None, default_path: str) -> str:
 
     os.makedirs(default_path, exist_ok=True)
     return default_path
+
 
 default_temp_path = os.path.join(tempfile.gettempdir(), 'fooocus')
 temp_path = init_temp_path(get_config_item_or_set_default(
@@ -592,7 +587,6 @@ if REWRITE_PRESET and isinstance(args_manager.args.preset, str):
     print(f'Preset saved to {save_path}. Exiting ...')
     exit(0)
 
-print(f'Time elapsed after config item setup: {time.time() - start_time:.4f} seconds')
 
 def add_ratio(x):
     a, b = x.replace('*', ' ').split(' ')[:2]
@@ -600,15 +594,16 @@ def add_ratio(x):
     g = math.gcd(a, b)
     return f'{a}×{b} <span style="color: grey;"> \U00002223 {a // g}:{b // g}</span>'
 
+
 default_aspect_ratio = add_ratio(default_aspect_ratio)
 available_aspect_ratios_labels = [add_ratio(x) for x in available_aspect_ratios]
 
-print(f'Time elapsed after aspect ratio setup: {time.time() - start_time:.4f} seconds')
 
 # Only write config in the first launch.
 # if not os.path.exists(config_path):
 #     with open(config_path, "w", encoding="utf-8") as json_file:
 #         json.dump({k: config_dict[k] for k in always_save_keys}, json_file, indent=4)
+
 
 # Always write tutorials.
 # with open(config_example_path, "w", encoding="utf-8") as json_file:
@@ -625,6 +620,7 @@ lora_filenames = []
 vae_filenames = []
 wildcard_filenames = []
 
+
 def get_model_filenames(folder_paths, extensions=None, name_filter=None):
     if extensions is None:
         extensions = ['.pth', '.ckpt', '.bin', '.safetensors', '.fooocus.patch']
@@ -637,6 +633,7 @@ def get_model_filenames(folder_paths, extensions=None, name_filter=None):
 
     return files
 
+
 def update_files():
     global model_filenames, lora_filenames, vae_filenames, wildcard_filenames, available_presets
     model_filenames = get_model_filenames(paths_checkpoints)
@@ -646,11 +643,6 @@ def update_files():
     available_presets = get_presets()
     return
 
-print(f'Time elapsed before updating files: {time.time() - start_time:.4f} seconds')
-
-update_files()
-
-print(f'Time elapsed after updating files: {time.time() - start_time:.4f} seconds')
 
 def downloading_inpaint_models(v):
     assert v in modules.flags.inpaint_engine_versions
@@ -689,6 +681,7 @@ def downloading_inpaint_models(v):
 
     return head_file, patch_file
 
+
 def downloading_sdxl_lcm_lora():
     load_file_from_url(
         url='https://huggingface.co/lllyasviel/misc/resolve/main/sdxl_lcm_lora.safetensors',
@@ -696,6 +689,7 @@ def downloading_sdxl_lcm_lora():
         file_name=modules.flags.PerformanceLoRA.EXTREME_SPEED.value
     )
     return modules.flags.PerformanceLoRA.EXTREME_SPEED.value
+
 
 def downloading_sdxl_lightning_lora():
     load_file_from_url(
@@ -705,6 +699,7 @@ def downloading_sdxl_lightning_lora():
     )
     return modules.flags.PerformanceLoRA.LIGHTNING.value
 
+
 def downloading_sdxl_hyper_sd_lora():
     load_file_from_url(
         url='https://huggingface.co/mashb1t/misc/resolve/main/sdxl_hyper_sd_4step_lora.safetensors',
@@ -712,6 +707,7 @@ def downloading_sdxl_hyper_sd_lora():
         file_name=modules.flags.PerformanceLoRA.HYPER_SD.value
     )
     return modules.flags.PerformanceLoRA.HYPER_SD.value
+
 
 def downloading_controlnet_canny():
     load_file_from_url(
@@ -721,6 +717,7 @@ def downloading_controlnet_canny():
     )
     return os.path.join(path_controlnet, 'control-lora-canny-rank128.safetensors')
 
+
 def downloading_controlnet_cpds():
     load_file_from_url(
         url='https://huggingface.co/lllyasviel/misc/resolve/main/fooocus_xl_cpds_128.safetensors',
@@ -728,6 +725,7 @@ def downloading_controlnet_cpds():
         file_name='fooocus_xl_cpds_128.safetensors'
     )
     return os.path.join(path_controlnet, 'fooocus_xl_cpds_128.safetensors')
+
 
 def downloading_ip_adapters(v):
     assert v in ['ip', 'face']
@@ -766,6 +764,7 @@ def downloading_ip_adapters(v):
 
     return results
 
+
 def downloading_upscale_model():
     load_file_from_url(
         url='https://huggingface.co/lllyasviel/misc/resolve/main/fooocus_upscaler_s409985e5.bin',
@@ -781,3 +780,6 @@ def downloading_safety_checker_model():
         file_name='stable-diffusion-safety-checker.bin'
     )
     return os.path.join(path_safety_checker, 'stable-diffusion-safety-checker.bin')
+
+
+update_files()
