@@ -79,7 +79,7 @@ image = (
 fastapi_app = FastAPI()
 
 # Define the class to manage the model
-@app.cls(gpu="A10G", container_idle_timeout=4, image=image)
+@app.cls(gpu="A100", container_idle_timeout=4, image=image)
 class FooocusModelManager:
     
     @modal.enter()
