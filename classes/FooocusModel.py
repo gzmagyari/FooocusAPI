@@ -45,50 +45,127 @@ from apis.models.base import CurrentTask
 from apis.utils.img_utils import (
     narray_to_base64img, base64_to_image
 )
+import time
+
+start_time = time.time()
+
 from apis.utils.post_worker import post_worker
+print(f'[Time taken for apis.utils.post_worker]: {time.time() - start_time:.4f} seconds')
+
 from modules import config
+print(f'[Time taken for modules.config]: {time.time() - start_time:.4f} seconds')
+
 from modules.patch import PatchSettings, patch_settings
+print(f'[Time taken for modules.patch]: {time.time() - start_time:.4f} seconds')
+
 import modules.flags as flags
+print(f'[Time taken for modules.flags]: {time.time() - start_time:.4f} seconds')
+
 import modules.inpaint_worker as inpaint_worker
+print(f'[Time taken for modules.inpaint_worker]: {time.time() - start_time:.4f} seconds')
+
 import modules.constants as constants
+print(f'[Time taken for modules.constants]: {time.time() - start_time:.4f} seconds')
+
 import extras.ip_adapter as ip_adapter
+print(f'[Time taken for extras.ip_adapter]: {time.time() - start_time:.4f} seconds')
+
 import fooocus_version
+print(f'[Time taken for fooocus_version]: {time.time() - start_time:.4f} seconds')
+
 import args_manager
+print(f'[Time taken for args_manager]: {time.time() - start_time:.4f} seconds')
+
 import extras.face_crop as face_crop
+print(f'[Time taken for extras.face_crop]: {time.time() - start_time:.4f} seconds')
+
 from utils.FooocusUtils import FooocusUtils
+print(f'[Time taken for utils.FooocusUtils]: {time.time() - start_time:.4f} seconds')
+
 from classes.BaseModel import BaseModel
+print(f'[Time taken for classes.BaseModel]: {time.time() - start_time:.4f} seconds')
+
 from classes.VAEDecode import VAEDecode
+print(f'[Time taken for classes.VAEDecode]: {time.time() - start_time:.4f} seconds')
+
 from classes.VAEDecodeTiled import VAEDecodeTiled
+print(f'[Time taken for classes.VAEDecodeTiled]: {time.time() - start_time:.4f} seconds')
+
 from classes.Sampler import Sampler
+print(f'[Time taken for classes.Sampler]: {time.time() - start_time:.4f} seconds')
+
 from classes.KSamplerX0Inpaint import KSamplerX0Inpaint
+print(f'[Time taken for classes.KSamplerX0Inpaint]: {time.time() - start_time:.4f} seconds')
+
 from classes.SDXL import SDXL
+print(f'[Time taken for classes.SDXL]: {time.time() - start_time:.4f} seconds')
+
 from classes.SDXLRefiner import SDXLRefiner
+print(f'[Time taken for classes.SDXLRefiner]: {time.time() - start_time:.4f} seconds')
+
 from classes.VAEApprox import VAEApprox
+print(f'[Time taken for classes.VAEApprox]: {time.time() - start_time:.4f} seconds')
+
 from classes.StableDiffusionModel import StableDiffusionModel
+print(f'[Time taken for classes.StableDiffusionModel]: {time.time() - start_time:.4f} seconds')
+
 from classes.EmptyLatentImage import EmptyLatentImage
+print(f'[Time taken for classes.EmptyLatentImage]: {time.time() - start_time:.4f} seconds')
+
 from classes.KSampler import KSampler
+print(f'[Time taken for classes.KSampler]: {time.time() - start_time:.4f} seconds')
 
 from extras.censor import default_censor
+print(f'[Time taken for extras.censor]: {time.time() - start_time:.4f} seconds')
+
 from modules.sdxl_styles import apply_style, get_random_style, fooocus_expansion, apply_arrays, random_style_name
+print(f'[Time taken for modules.sdxl_styles]: {time.time() - start_time:.4f} seconds')
+
 from modules.private_logger import log
+print(f'[Time taken for modules.private_logger]: {time.time() - start_time:.4f} seconds')
+
 from extras.expansion import safe_str
+print(f'[Time taken for extras.expansion.safe_str]: {time.time() - start_time:.4f} seconds')
+
 from modules.util import (remove_empty_str, HWC3, resize_image, get_image_shape_ceil, set_image_shape_ceil,
-                            get_shape_ceil, resample_image, erode_or_dilate, get_enabled_loras,
-                            parse_lora_references_from_prompt, apply_wildcards)
+                          get_shape_ceil, resample_image, erode_or_dilate, get_enabled_loras,
+                          parse_lora_references_from_prompt, apply_wildcards)
+print(f'[Time taken for modules.util]: {time.time() - start_time:.4f} seconds')
+
 from modules.upscaler import perform_upscale
+print(f'[Time taken for modules.upscaler]: {time.time() - start_time:.4f} seconds')
+
 from modules.flags import Performance
+print(f'[Time taken for modules.flags.Performance]: {time.time() - start_time:.4f} seconds')
+
 from modules.meta_parser import MetadataScheme
+print(f'[Time taken for modules.meta_parser]: {time.time() - start_time:.4f} seconds')
+
 from modules.sample_hijack import clip_separate
+print(f'[Time taken for modules.sample_hijack]: {time.time() - start_time:.4f} seconds')
+
 import extras.vae_interpose as vae_interpose
+print(f'[Time taken for extras.vae_interpose]: {time.time() - start_time:.4f} seconds')
+
 from extras.expansion import FooocusExpansion
+print(f'[Time taken for extras.expansion.FooocusExpansion]: {time.time() - start_time:.4f} seconds')
+
 import modules.core as core
+print(f'[Time taken for modules.core]: {time.time() - start_time:.4f} seconds')
+
 from ldm_patched.modules.sd import load_checkpoint_guess_config
+print(f'[Time taken for ldm_patched.modules.sd]: {time.time() - start_time:.4f} seconds')
+
 from modules.config import path_embeddings
+print(f'[Time taken for modules.config.path_embeddings]: {time.time() - start_time:.4f} seconds')
+
 import extras.preprocessors as preprocessors
+print(f'[Time taken for extras.preprocessors]: {time.time() - start_time:.4f} seconds')
 
 from classes.ModelType import ModelType
+print(f'[Time taken for classes.ModelType]: {time.time() - start_time:.4f} seconds')
 
-print('[System ARGV] ' + str(sys.argv))
+print(f'[System ARGV] ' + str(sys.argv))
 
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
