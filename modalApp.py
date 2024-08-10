@@ -51,11 +51,11 @@ image = (
     ])
 )
 
-# Define the Volume
-model_volume = modal.Volume(name="fooocus_model_cache", mount_path="./fooocus_model_cache")
+# Define the Volume correctly
+model_volume = modal.Volume.from_name("fooocus_model_cache", create_if_missing=True)
 
 # Define the class to manage the model
-@app.cls(gpu="A10G", container_idle_timeout=240, image=image, volumes=[model_volume])
+@app.cls(gpu="A10G", container_idle_timeout=240, image=image, volumes={"/fooocus_model_cache": model_volume})
 class FooocusModelManager:
     
     @modal.enter()
