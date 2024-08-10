@@ -42,12 +42,14 @@ image = (
     )
 )
 
-with image.imports():
-    from apis.models.requests import CommonRequest
-    from apis.utils.img_utils import base64_to_image
-    from classes.FooocusModel import FooocusModel
-    from makeModelDictionary import makeModelDictionary
-    import fooocus_constants
+image.copy_local_dir("./", "/root")
+
+# with image.imports():
+#     from apis.models.requests import CommonRequest
+#     from apis.utils.img_utils import base64_to_image
+#     from classes.FooocusModel import FooocusModel
+#     from makeModelDictionary import makeModelDictionary
+#     import fooocus_constants
 
 fastapi_app = FastAPI()
 
