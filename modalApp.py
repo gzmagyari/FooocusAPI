@@ -155,10 +155,7 @@ class FooocusModelManager:
         result = await self.model.async_worker(request=request, wait_for_result=True)
         if "base64_result" in result:
             base64str = result["base64_result"][0]
-            random_filename = f"{uuid.uuid4()}.png"
-            output_path = os.path.join(fooocus_constants.VOLUME_OUTPUT_DIR, random_filename)
-            image = base64_to_image(base64str, output_path)
-            return {"image": output_path}
+            return {"image": base64str}
         else:
             raise HTTPException(status_code=500, detail="Image generation failed")
 
