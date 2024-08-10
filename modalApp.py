@@ -146,12 +146,12 @@ class FooocusModelManager:
                     self.load_file_from_url(url, model_dir=directory)
 
     @modal.method()
-    async def generate_image(self, prompt: str, negative_prompt: str = None, width: int = 512, height: int = 512, performance_selection: str = "Quality"):
+    async def generate_image(self, request: dict):
         from apis.models.requests import CommonRequest
         from apis.utils.img_utils import base64_to_image
         import fooocus_constants
 
-        request = CommonRequest(prompt=prompt, negative_prompt=negative_prompt, performance_selection=performance_selection)
+        request = CommonRequest(**request)
         result = await self.model.async_worker(request=request, wait_for_result=True)
         if "base64_result" in result:
             base64str = result["base64_result"][0]
@@ -164,7 +164,7 @@ class FooocusModelManager:
 @fastapi_app.post("/generate_image")
 async def generate_image_endpoint(request: dict):
     manager = FooocusModelManager()
-    result = manager.generate_image.remote(request["prompt"], request["negative_prompt"], request["width"], request["height"], request["performance_selection"])
+    result = manager.generate_image.remote(request)
     #result = manager.generate_image.remote(prompt, negative_prompt, width, height, performance_selection)
     return result
 
