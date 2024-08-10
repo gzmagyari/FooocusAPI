@@ -6,12 +6,6 @@ import uuid
 from fastapi import FastAPI, HTTPException
 from typing import Optional, Dict, List
 from urllib.parse import urlparse
-
-from classes.FooocusModel import FooocusModel
-from apis.models.requests import CommonRequest
-from apis.utils.img_utils import base64_to_image
-from makeModelDictionary import makeModelDictionary
-import fooocus_constants
 import shutil
 
 # Define Modal app
@@ -111,6 +105,10 @@ class FooocusModelManager:
                     self.load_file_from_url(url, model_dir=directory)
 
     def load_model(self):
+        from classes.FooocusModel import FooocusModel
+        from makeModelDictionary import makeModelDictionary
+        import fooocus_constants
+
         file_dict = makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
         self.download_files(file_dict)
         model = FooocusModel()
@@ -119,6 +117,10 @@ class FooocusModelManager:
 
     @modal.method()
     async def generate_image(self, prompt: str, negative_prompt: str = None, width: int = 512, height: int = 512, performance_selection: str = "Quality"):
+        from apis.models.requests import CommonRequest
+        from apis.utils.img_utils import base64_to_image
+        import fooocus_constants
+
         request = CommonRequest(prompt=prompt, negative_prompt=negative_prompt, performance_selection=performance_selection)
         result = await self.model.async_worker(request=request, wait_for_result=True)
         if "base64_result" in result:
