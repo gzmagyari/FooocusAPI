@@ -54,22 +54,22 @@ image = (
     .copy_local_dir("./tests", "/root/tests")
     .copy_local_dir("./utils", "/root/utils")
     .copy_local_dir("./wildcards", "/root/wildcards")
-    .copy_local_file("./args_manager.py", "/root/args_manager.py")
-    .copy_local_file("./build_launcher.py", "/root/build_launcher.py")
-    .copy_local_file("./fooocus_constants.py", "/root/fooocus_constants.py")
-    .copy_local_file("./fooocus_version.py", "/root/fooocus_version.py")
-    .copy_local_file("./makeModelDictionary.py", "/root/makeModelDictionary.py")
-    .copy_local_file("./shared.py", "/root/shared.py")
-    .copy_local_file("./webui.py", "/root/webui.py")
+    # .copy_local_file("./args_manager.py", "/root/args_manager.py")
+    # .copy_local_file("./build_launcher.py", "/root/build_launcher.py")
+    # .copy_local_file("./fooocus_constants.py", "/root/fooocus_constants.py")
+    # .copy_local_file("./fooocus_version.py", "/root/fooocus_version.py")
+    # .copy_local_file("./makeModelDictionary.py", "/root/makeModelDictionary.py")
+    # .copy_local_file("./shared.py", "/root/shared.py")
+    # .copy_local_file("./webui.py", "/root/webui.py")
     #.copy_local_dir("./models/prompt_expansion/fooocus_expansion", "/root/models/prompt_expansion/fooocus_expansion")
 )
 
-with image.imports():
-    from apis.models.requests import CommonRequest
-    from apis.utils.img_utils import base64_to_image
-    from classes.FooocusModel import FooocusModel
-    from makeModelDictionary import makeModelDictionary
-    import fooocus_constants
+# with image.imports():
+#     from apis.models.requests import CommonRequest
+#     from apis.utils.img_utils import base64_to_image
+#     from classes.FooocusModel import FooocusModel
+#     from makeModelDictionary import makeModelDictionary
+#     import fooocus_constants
 
 fastapi_app = FastAPI()
 
