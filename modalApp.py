@@ -164,7 +164,7 @@ class FooocusModelManager:
 @fastapi_app.post("/generate_image")
 async def generate_image_endpoint(request: dict):
     manager = FooocusModelManager()
-    result = await manager.generate_image(request["prompt"], request["negative_prompt"], request["width"], request["height"], request["performance_selection"])
+    result = manager.generate_image.remote(request["prompt"], request["negative_prompt"], request["width"], request["height"], request["performance_selection"])
     #result = manager.generate_image.remote(prompt, negative_prompt, width, height, performance_selection)
     return result
 
