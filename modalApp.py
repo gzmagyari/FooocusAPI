@@ -64,6 +64,8 @@ image = (
     .copy_local_file("./webui.py", "/root/webui.py")
     .run_commands("pip uninstall -y pydantic")
     .run_commands("pip install pydantic")
+    .run_commands("pip uninstall -y fastapi")
+    .run_commands("pip install fastapi")
 )
 
 # with image.imports():
