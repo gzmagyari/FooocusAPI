@@ -95,8 +95,7 @@ class FooocusModelManager:
         
         file_dict = makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
         self.download_files(file_dict)
-        #self.copy_local_directory(os.path.join("./models", "prompt_expansion"), os.path.join(fooocus_constants.VOLUME_MODEL_PATH, "prompt_expansion"))
-        self.model = FooocusModel()
+        self.model = self.getModel()
         asyncio.run(self.model.startInBackground())
 
     @modal.enter(snap=False)
