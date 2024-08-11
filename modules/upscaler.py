@@ -8,12 +8,12 @@ from collections import OrderedDict
 from modules.config import path_upscale_models
 
 model_filename = os.path.join(path_upscale_models, 'fooocus_upscaler_s409985e5.bin')
-opImageUpscaleWithModel = ImageUpscaleWithModel()
 model = None
 
 
 def perform_upscale(img):
     global model
+    opImageUpscaleWithModel = ImageUpscaleWithModel()
 
     print(f'Upscaling image with shape {str(img.shape)} ...')
 
