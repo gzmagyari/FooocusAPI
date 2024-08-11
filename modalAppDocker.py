@@ -98,8 +98,10 @@ class FooocusModelManager:
         self.model = self.getModel()
         asyncio.run(self.model.startInBackground())
 
+    @modal.enter(snap=False)
     def getModel(self):
         from classes.FooocusModel import FooocusModel
+        print("Creating model")
         return FooocusModel()
 
     def load_file_from_url(self, url: str, *, model_dir: str, progress: bool = True, file_name: Optional[str] = None) -> str:
