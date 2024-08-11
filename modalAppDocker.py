@@ -84,23 +84,20 @@ class FooocusModelManager:
     
     @modal.enter()
     def initializeApp(self):
+        from classes.FooocusModel import FooocusModel
+        from makeModelDictionary import makeModelDictionary
+        import fooocus_constants
+
         os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
         os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
         os.environ.setdefault("GRADIO_SERVER_PORT", "7865")
         ssl._create_default_https_context = ssl._create_unverified_context
         
-        file_dict = self.getFileDictionary()
+        file_dict = makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
         self.download_files(file_dict)
-        self.model = self.getModel()
-        self.model.unwrap_from_cpu()
+        #self.copy_local_directory(os.path.join("./models", "prompt_expansion"), os.path.join(fooocus_constants.VOLUME_MODEL_PATH, "prompt_expansion"))
+        self.model = FooocusModel()
         asyncio.run(self.model.startInBackground())
-
-    @modal.enter(snap=False)
-    def getFileDictionary(self):
-        from makeModelDictionary import makeModelDictionary
-        import fooocus_constants
-
-        return makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
 
     @modal.enter(snap=False)
     def getModel(self):
