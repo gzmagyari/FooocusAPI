@@ -557,7 +557,9 @@ def text_encoder_dtype(device=None):
     else:
         return torch.float32
 
-def intermediate_device():
+def intermediate_device(always_cpu=False):
+    if always_cpu:
+        return torch.device("cpu")
     if args.always_gpu or True:
         return get_torch_device()
     else:

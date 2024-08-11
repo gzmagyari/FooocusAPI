@@ -4,8 +4,8 @@ import torch
 MAX_RESOLUTION=8192
 
 class EmptyLatentImage:
-    def __init__(self):
-        self.device = ldm_patched.modules.model_management.intermediate_device()
+    def __init__(self, cpu_mode=False):
+        self.device = ldm_patched.modules.model_management.intermediate_device(cpu_mode)
 
     @classmethod
     def INPUT_TYPES(s):
@@ -20,3 +20,6 @@ class EmptyLatentImage:
     def generate(self, width, height, batch_size=1):
         latent = torch.zeros([batch_size, 4, height // 8, width // 8], device=self.device)
         return ({"samples":latent}, )
+
+    def unwrap_from_cpu(self):
+        self.device = ldm_patched.modules.model_management.intermediate_device(False)

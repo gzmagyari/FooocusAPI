@@ -40,22 +40,26 @@ image = (
         "timm==0.9.2",
         "sse_starlette",
         "pydantic"
-    ).
-    copy_local_dir("./apis", "/root/apis")
-    .copy_local_dir("./classes", "/root/classes")
+    )
+    .copy_local_dir("./models", "/root/models")
+    .copy_local_dir("./apis", "/root/apis")
     .copy_local_dir("./css", "/root/css")
     .copy_local_dir("./docs", "/root/docs")
-    .copy_local_dir("./extras", "/root/extras")
     .copy_local_dir("./javascript", "/root/javascript")
     .copy_local_dir("./language", "/root/language")
-    .copy_local_dir("./ldm_patched", "/root/ldm_patched")
-    .copy_local_dir("./modules", "/root/modules")
-    .copy_local_dir("./presets", "/root/presets")
     .copy_local_dir("./sdxl_styles", "/root/sdxl_styles")
     .copy_local_dir("./tests", "/root/tests")
     .copy_local_dir("./utils", "/root/utils")
     .copy_local_dir("./wildcards", "/root/wildcards")
-    .copy_local_dir("./models", "/root/models")
+    .run_commands("pip uninstall -y pydantic")
+    .run_commands("pip install pydantic")
+    .run_commands("pip uninstall -y fastapi")
+    .run_commands("pip install fastapi")
+    .copy_local_dir("./extras", "/root/extras")
+    .copy_local_dir("./presets", "/root/presets")
+    .copy_local_dir("./classes", "/root/classes")
+    .copy_local_dir("./ldm_patched", "/root/ldm_patched")
+    .copy_local_dir("./modules", "/root/modules")
     .copy_local_file("./args_manager.py", "/root/args_manager.py")
     .copy_local_file("./build_launcher.py", "/root/build_launcher.py")
     .copy_local_file("./fooocus_constants.py", "/root/fooocus_constants.py")
@@ -63,10 +67,6 @@ image = (
     .copy_local_file("./makeModelDictionary.py", "/root/makeModelDictionary.py")
     .copy_local_file("./shared.py", "/root/shared.py")
     .copy_local_file("./webui.py", "/root/webui.py")
-    .run_commands("pip uninstall -y pydantic")
-    .run_commands("pip install pydantic")
-    .run_commands("pip uninstall -y fastapi")
-    .run_commands("pip install fastapi")
 )
 
 # with image.imports():
@@ -92,6 +92,7 @@ class FooocusModelManager:
         file_dict = self.getFileDictionary()
         self.download_files(file_dict)
         self.model = self.getModel()
+        self.model.unwrap_from_cpu()
         asyncio.run(self.model.startInBackground())
 
     @modal.enter(snap=True)
@@ -104,7 +105,7 @@ class FooocusModelManager:
     @modal.enter(snap=True)
     def getModel(self):
         from classes.FooocusModel import FooocusModel
-        return FooocusModel()
+        return FooocusModel(True)
 
     def load_file_from_url(self, url: str, *, model_dir: str, progress: bool = True, file_name: Optional[str] = None) -> str:
         """Download a file from `url` into `model_dir`, using the file present if possible."""

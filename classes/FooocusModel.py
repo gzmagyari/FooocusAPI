@@ -178,7 +178,7 @@ session = Session()
 
 
 class FooocusModel():
-    def __init__(self):
+    def __init__(self, cpu_mode = False):
         self.async_tasks = []
         self.loaded_ControlNets = {}
         self.VAE_approx_models = {}
@@ -193,7 +193,7 @@ class FooocusModel():
         self.final_refiner_unet = None
         self.final_refiner_vae = None
 
-        self.opEmptyLatentImage = EmptyLatentImage()
+        self.opEmptyLatentImage = EmptyLatentImage(cpu_mode)
         self.opVAEDecodeTiled = VAEDecodeTiled()
         self.opVAEDecode = VAEDecode()
 
@@ -208,6 +208,9 @@ class FooocusModel():
             print(flag)
         except Exception as e:
             print(e)
+
+    def unwrap_from_cpu(self):
+        self.opEmptyLatentImage.unwrap_from_cpu()
 
     def progressbar(self, async_task, number, text):
         print(f'[Fooocus] {text}')
