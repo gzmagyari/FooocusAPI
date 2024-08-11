@@ -98,7 +98,6 @@ class FooocusModelManager:
         self.model = self.getModel()
         asyncio.run(self.model.startInBackground())
 
-    @modal.enter(snap=False)
     def getModel(self):
         from classes.FooocusModel import FooocusModel
         return FooocusModel()
