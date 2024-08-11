@@ -16,3 +16,5 @@ os.makedirs(VOLUME_MODEL_PATH, exist_ok=True)
 os.makedirs(VOLUME_OUTPUT_DIR, exist_ok=True)
 os.makedirs(VOLUME_INPUT_DIR, exist_ok=True)
 os.makedirs(LOCAL_MODEL_PATH, exist_ok=True)
+
+ENABLE_GPU_LOGS = False

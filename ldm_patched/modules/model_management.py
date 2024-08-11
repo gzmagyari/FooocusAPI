@@ -4,6 +4,7 @@ from ldm_patched.modules.args_parser import args
 import ldm_patched.modules.utils
 import torch
 import sys
+import fooocus_constants
 
 class VRAMState(Enum):
     DISABLED = 0    #No vram present: no need to move models to vram
@@ -118,13 +119,14 @@ def get_total_memory(dev=None, torch_total_too=False):
     else:
         return mem_total
 
-total_vram = get_total_memory(get_torch_device()) / (1024 * 1024)
-total_ram = psutil.virtual_memory().total / (1024 * 1024)
-print("Total VRAM {:0.0f} MB, total RAM {:0.0f} MB".format(total_vram, total_ram))
-if not args.always_normal_vram and not args.always_cpu:
-    if lowvram_available and total_vram <= 4096:
-        print("Trying to enable lowvram mode because your GPU seems to have 4GB or less. If you don't want this use: --always-normal-vram")
-        set_vram_to = VRAMState.LOW_VRAM
+if fooocus_constants.ENABLE_GPU_LOGS:
+    total_vram = get_total_memory(get_torch_device()) / (1024 * 1024)
+    total_ram = psutil.virtual_memory().total / (1024 * 1024)
+    print("Total VRAM {:0.0f} MB, total RAM {:0.0f} MB".format(total_vram, total_ram))
+    if not args.always_normal_vram and not args.always_cpu:
+        if lowvram_available and total_vram <= 4096:
+            print("Trying to enable lowvram mode because your GPU seems to have 4GB or less. If you don't want this use: --always-normal-vram")
+            set_vram_to = VRAMState.LOW_VRAM
 
 try:
     OOM_EXCEPTION = torch.cuda.OutOfMemoryError
@@ -256,12 +258,13 @@ def get_torch_device_name(device):
     else:
         return "CUDA {}: {}".format(device, torch.cuda.get_device_name(device))
 
-try:
-    print("Device:", get_torch_device_name(get_torch_device()))
-except:
-    print("Could not pick default device.")
+if fooocus_constants.ENABLE_GPU_LOGS:
+    try:
+        print("Device:", get_torch_device_name(get_torch_device()))
+    except:
+        print("Could not pick default device.")
 
-print("VAE dtype:", VAE_DTYPE)
+    print("VAE dtype:", VAE_DTYPE)
 
 current_loaded_models = []
 
