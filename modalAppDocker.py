@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 import shutil
 
 # Define Modal app
-app = modal.App("fooocus-ai-service-docker")
+app = modal.App("fooocus-ai-service-docker2")
 
 # Define the container image with dependencies
 image = (
@@ -170,7 +170,7 @@ class FooocusModelManager:
 # FastAPI endpoint
 @fastapi_app.post("/generate_image")
 async def generate_image_endpoint(request: dict):
-    manager = modal.Cls.lookup("fooocus-ai-service-docker", "FooocusModelManager")
+    manager = modal.Cls.lookup("fooocus-ai-service-docker2", "FooocusModelManager")
     result = manager.generate_image.remote(request)
     return result
 
