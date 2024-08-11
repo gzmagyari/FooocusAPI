@@ -165,7 +165,7 @@ class FooocusModelManager:
 # FastAPI endpoint
 @fastapi_app.post("/generate_image")
 async def generate_image_endpoint(request: dict):
-    manager = FooocusModelManager()
+    manager = modal.Cls.lookup("fooocus-ai-service-docker", "FooocusModelManager")
     result = manager.generate_image.remote(request)
     return result
 
