@@ -95,7 +95,7 @@ class FooocusModelManager:
         self.model.unwrap_from_cpu()
         asyncio.run(self.model.startInBackground())
 
-    @modal.enter(snap=True)
+    @modal.enter(snap=False)
     def getFileDictionary(self):
         from makeModelDictionary import makeModelDictionary
         import fooocus_constants
