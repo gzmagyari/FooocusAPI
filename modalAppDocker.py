@@ -95,19 +95,13 @@ class FooocusModelManager:
         
         file_dict = makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
         self.download_files(file_dict)
-        self.test = self.test()
         self.model = self.getModel()
         asyncio.run(self.model.startInBackground())
 
-    @modal.enter(snap=False)
     def getModel(self):
         from classes.FooocusModel import FooocusModel
         print("Creating model")
         return FooocusModel()
-
-    @modal.enter(snap=True)
-    def test(self):
-        return "test"
 
     def load_file_from_url(self, url: str, *, model_dir: str, progress: bool = True, file_name: Optional[str] = None) -> str:
         """Download a file from `url` into `model_dir`, using the file present if possible."""
