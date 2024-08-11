@@ -102,10 +102,10 @@ class FooocusModelManager:
 
         return makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
 
-    @modal.enter(snap=True)
+    @modal.enter(snap=False)
     def getModel(self):
         from classes.FooocusModel import FooocusModel
-        return FooocusModel(True)
+        return FooocusModel()
 
     def load_file_from_url(self, url: str, *, model_dir: str, progress: bool = True, file_name: Optional[str] = None) -> str:
         """Download a file from `url` into `model_dir`, using the file present if possible."""
