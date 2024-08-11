@@ -95,11 +95,11 @@ class FooocusModelManager:
         
         file_dict = makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
         self.download_files(file_dict)
-        self.model = self.getModel()
+        self.model = self.getModelFromSnapshot()
         asyncio.run(self.model.startInBackground())
 
     @modal.enter(snap=False)
-    def getModel(self):
+    def getModelFromSnapshot(self):
         from classes.FooocusModel import FooocusModel
         print("Creating model")
         return FooocusModel()
