@@ -80,7 +80,7 @@ fastapi_app = FastAPI()
 
 # Define the class to manage the model
 @app.cls(gpu="A100", container_idle_timeout=4, enable_memory_snapshot=True, image=image)
-class FooocusModelManager:
+class FooocusModelManager2:
     
     @modal.enter()
     def initializeApp(self):
@@ -95,11 +95,11 @@ class FooocusModelManager:
         
         file_dict = makeModelDictionary(fooocus_constants.VOLUME_MODEL_PATH, fooocus_constants.LOCAL_MODEL_PATH, fooocus_constants.USE_VOLUME_FOR_CHECKPOINTS)
         self.download_files(file_dict)
-        self.model = self.getModelFromSnapshot()
+        self.model = self.getModel()
         asyncio.run(self.model.startInBackground())
 
     @modal.enter(snap=False)
-    def getModelFromSnapshot(self):
+    def getModel(self):
         from classes.FooocusModel import FooocusModel
         print("Creating model")
         return FooocusModel()
@@ -165,7 +165,7 @@ class FooocusModelManager:
 # FastAPI endpoint
 @fastapi_app.post("/generate_image")
 async def generate_image_endpoint(request: dict):
-    manager = modal.Cls.lookup("fooocus-ai-service-docker", "FooocusModelManager")
+    manager = modal.Cls.lookup("fooocus-ai-service-docker", "FooocusModelManager2")
     result = manager.generate_image.remote(request)
     return result
 
