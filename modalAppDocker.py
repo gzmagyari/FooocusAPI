@@ -79,7 +79,7 @@ image = (
 fastapi_app = FastAPI()
 
 # Define the class to manage the model
-@app.cls(gpu="A100", container_idle_timeout=4, enable_memory_snapshot=True, image=image)
+@app.cls(gpu="A100", container_idle_timeout=4, enable_memory_snapshot=False, image=image)
 class FooocusModelManager:
     
     @modal.enter()
@@ -173,7 +173,7 @@ async def generate_image_endpoint(request: dict):
     return result
 
 # Modal ASGI app
-@app.function(container_idle_timeout=4, enable_memory_snapshot=True)
+@app.function(container_idle_timeout=4, enable_memory_snapshot=False)
 @modal.asgi_app()
 def fastapi_asgi_app():
     return fastapi_app
